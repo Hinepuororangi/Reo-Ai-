@@ -424,7 +424,7 @@ async function addPattern() {
   const context = document.getElementById('pa-context-i').value.trim();
   if(!pattern_name) return;
   if(editId) await dbUpdate('capability_patterns', {pattern_name,core_frame,context}, 'id', editId);
-  else await dbInsert('capability_patterns', {pattern_name,core_frame,context,stage:'recognise',verified:false,status:'unverified',repetition_count:0});
+  else await dbInsert('capability_patterns', {pattern_name,core_frame,context,stage:'recognise',verified:true,status:'verified',repetition_count:0});
   ['pa-name-i','pa-frame-i','pa-context-i'].forEach(id=>document.getElementById(id).value='');
   closePatternForm(); renderPatterns();
 }
