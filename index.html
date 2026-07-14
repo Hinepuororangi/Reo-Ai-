@@ -426,7 +426,7 @@ async function addKupu() {
   const context = document.getElementById('ku-context-i').value.trim();
   if(!word) return;
   if(editId) await dbUpdate('capability_kupu', {type,word,meaning,context}, 'id', editId);
-  else { const {data} = await dbInsert('capability_kupu', {type,word,meaning,context}); if(data) capKupu.unshift(data[0]); }
+  else { const {data} = await dbInsert('capability_kupu', {type,word,meaning,context,verified:true}); if(data) capKupu.unshift(data[0]); }
   ['ku-word-i','ku-meaning-i','ku-context-i'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ku-type-i').value='Kupu';
   closeKupuForm(); capKupu=[]; renderKupu();
