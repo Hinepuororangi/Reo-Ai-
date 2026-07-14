@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Kupu Capability</title>
+<title>Reo AI Capability</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -77,7 +77,7 @@
 <body>
 <div class="app">
   <header>
-    <div class="brand">Kupu<sup>Capability</sup></div>
+    <div class="brand">Reo AI<sup>Capability</sup></div>
   </header>
 
   <main>
@@ -398,7 +398,7 @@ let capKupu = [];
 const KUPU_TYPE_CLASS = {Kupu:'tag-sage', 'Whakataukī':'tag-sage', Karanga:'tag-sage', Waiata:'tag-sage'};
 function kupuHTML(k) {
   return `<div class="kupu-card"><div style="flex:1">
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="kupu-word">${k.word}</div><span class="tag ${KUPU_TYPE_CLASS[k.type]||'tag-sage'}">${k.type||'Kupu'}</span></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="kupu-word">${k.word}</div><span class="tag ${KUPU_TYPE_CLASS[k.type]||'tag-sage'}">${k.type||'Kupu'}</span>${k.verified?'<span class="tag tag-sage">✓ Verified</span>':'<span class="tag tag-dim">⚠ Unverified</span>'}</div>
     <div class="kupu-meaning">${k.meaning||''}</div>${k.context?`<div class="kupu-context">${k.context}</div>`:''}
   </div><button class="edit-btn" onclick='editKupu(${JSON.stringify(k.id)})'>Edit</button></div>`;
 }
