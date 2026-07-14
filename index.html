@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="mi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Reo AI Capability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cacao: #4a3428; --cacao-light: #7a5c47;
+    --sage: #8a9a7e; --sage-dark: #5f6e54;
+    --sand: #f2ead9; --sand-light: #faf6ec; --white: #fff;
+    --amber: #c98a3e; --error: #b5533c; --border: #e8ddc8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--sand-light); color: var(--cacao); font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+  .display { font-family: 'Playfair Display', serif; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 20px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+  .brand sup { font-size: 11px; color: var(--sage-dark); font-weight: 700; margin-left: 2px; }
+  main { flex: 1; padding: 20px 20px 90px; }
+  .section-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--sage-dark); font-weight: 700; margin-bottom: 10px; }
+
+  /* Frame card (Practice screen) */
+  .frame-card { background: var(--white); border-radius: 20px; padding: 26px 22px; box-shadow: 0 1px 3px rgba(74,52,40,.06); border: 1px solid #ede3cd; margin-bottom: 20px; }
+  .frame-text { font-size: 24px; line-height: 1.35; font-weight: 500; margin-bottom: 6px; }
+  .frame-meaning { font-size: 14px; color: var(--cacao-light); margin-bottom: 16px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 4px 9px; }
+  .tag-dim { background: #fbeee9; color: var(--error); }
+  .tag-sage { background: #eef2ea; color: var(--sage-dark); }
+  .check-teaka { display: inline-block; font-size: 12px; font-weight: 700; color: var(--sage-dark); text-decoration: none; border-bottom: 1px solid var(--sage); margin: 10px 0; }
+  .rep-row { display: flex; align-items: baseline; justify-content: space-between; margin: 14px 0; }
+  .rep-count { font-size: 14px; color: var(--cacao-light); } .rep-count strong { color: var(--cacao); font-size: 16px; }
+  .rep-dots { display: flex; gap: 6px; }
+  .rep-dot { width: 9px; height: 9px; border-radius: 50%; background: #e8ddc8; }
+  .rep-dot.filled { background: var(--sage-dark); }
+  .say-btn { width: 100%; background: var(--cacao); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; font-family: 'DM Sans'; cursor: pointer; }
+  .say-btn:active { transform: scale(.98); }
+  .note-panel { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .note-panel textarea { width: 100%; border: 1px solid #ddd0b3; border-radius: 10px; padding: 10px; font-family: 'DM Sans'; font-size: 13px; min-height: 54px; margin-bottom: 8px; }
+  .note-actions { display: flex; gap: 8px; }
+  .note-actions button { flex: 1; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; }
+  .save-note { background: var(--sage-dark); color: #fff; }
+  .skip-note { background: var(--sand); color: var(--cacao-light); border: 1px solid #ddd0b3 !important; }
+  .confirm { text-align: center; padding: 10px; background: #eef2ea; border-radius: 10px; color: var(--sage-dark); font-weight: 700; font-size: 13px; margin-top: 12px; }
+  .repeat-list { display: flex; flex-direction: column; gap: 8px; }
+  .repeat-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--sand-light); cursor: pointer; }
+  .repeat-row.done { background: #eef2ea; border-color: var(--sage); cursor: default; }
+  .repeat-check { width: 26px; height: 26px; border-radius: 50%; background: var(--white); border: 1px solid #ddd0b3; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--cacao-light); flex-shrink: 0; }
+  .repeat-row.done .repeat-check { background: var(--sage-dark); border-color: var(--sage-dark); color: #fff; }
+  .repeat-text { font-size: 18px; font-weight: 500; }
+  .empty-state { color: var(--cacao-light); font-size: 14px; padding: 20px 0; }
+
+  /* Library cards */
+  .kupu-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+  .kupu-word { font-weight: 700; font-size: 15px; } .kupu-meaning { font-size: 13px; color: var(--cacao-light); margin-top: 2px; }
+  .kupu-context { font-size: 12px; color: var(--cacao-light); margin-top: 4px; }
+  .edit-btn, .use-btn { padding: 6px 10px; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-weight: 700; color: var(--cacao-light); flex-shrink: 0; }
+  .use-btn { background: var(--sage-dark); color: #fff; border-color: var(--sage-dark); }
+
+  .add-form { display: none; flex-direction: column; gap: 8px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .add-form.visible { display: flex; }
+  .add-form input, .add-form select, .add-form textarea { padding: 10px; border-radius: 8px; border: 1px solid #ddd0b3; font-family: 'DM Sans'; font-size: 13px; }
+  .form-row { display: flex; gap: 8px; }
+  .form-row button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-save { background: var(--sage-dark); color: #fff; }
+  .btn-cancel { background: var(--sand); color: var(--cacao-light); }
+  .add-btn { width: 22px; height: 22px; border: 1px solid var(--cacao-light); background: transparent; color: var(--cacao-light); border-radius: 50%; font-size: 14px; cursor: pointer; }
+
+  .lib-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  .lib-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--white); font-size: 12px; font-weight: 700; color: var(--cacao-light); cursor: pointer; }
+  .lib-tab.active { background: var(--cacao); color: #fff; border-color: var(--cacao); }
+  .lib-panel { display: none; } .lib-panel.active { display: block; }
+
+  nav.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(249,245,241,.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); display: flex; }
+  .nav-item { flex: 1; text-align: center; padding: 14px 8px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: #b0a186; cursor: pointer; border-bottom: 2px solid transparent; }
+  .nav-item.active { color: var(--cacao); border-bottom-color: var(--sage-dark); }
+  .loading { color: var(--cacao-light); font-size: 13px; padding: 10px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">Reo AI<sup>Capability</sup></div>
+  </header>
+
+  <main>
+    <!-- PRACTICE SCREEN -->
+    <div id="screen-practice">
+      <div class="section-label">This week</div>
+      <div id="practice-frame"><div class="loading">Loading...</div></div>
+    </div>
+
+    <!-- LIBRARY SCREEN -->
+    <div id="screen-library" style="display:none">
+      <div class="lib-tabs">
+        <div class="lib-tab active" data-tab="rerenga" onclick="switchLibTab('rerenga')">Rerenga Kōrero</div>
+        <div class="lib-tab" data-tab="phrases" onclick="switchLibTab('phrases')">Phrase Bank</div>
+        <div class="lib-tab" data-tab="patterns" onclick="switchLibTab('patterns')">My Patterns</div>
+        <div class="lib-tab" data-tab="kupu" onclick="switchLibTab('kupu')">Kupu Bank</div>
+      </div>
+
+      <div class="lib-panel active" id="lib-rerenga">
+        <div id="rerenga-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-phrases">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin-bottom:0">Pre-verified — check, then use</div>
+          <button class="add-btn" onclick="toggleForm('phrase-form')">+</button>
+        </div>
+        <div class="add-form" id="phrase-form">
+          <input type="hidden" id="ph-edit-id" />
+          <input type="text" id="ph-phrase-i" placeholder="The full sentence" />
+          <input type="text" id="ph-meaning-i" placeholder="Meaning" />
+          <input type="text" id="ph-context-i" placeholder="Real-life context" />
+          <input type="text" id="ph-source-i" placeholder="Source (e.g. Te Aka, kaumātua name)" />
+          <div class="form-row">
+            <button class="btn-save" id="ph-save-btn" onclick="addPhrase()">Add phrase</button>
+            <button class="btn-cancel" onclick="closePhraseForm()">✕</button>
+          </div>
+        </div>
+        <div id="phrase-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-patterns">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin-bottom:0">Frames you're building</div>
+          <button class="add-btn" onclick="toggleForm('pattern-form')">+</button>
+        </div>
+        <div class="add-form" id="pattern-form">
+          <input type="hidden" id="pa-edit-id" />
+          <input type="text" id="pa-name-i" placeholder="Pattern name" />
+          <input type="text" id="pa-frame-i" placeholder="Core sentence frame" />
+          <input type="text" id="pa-context-i" placeholder="Real-life context" />
+          <div class="form-row">
+            <button class="btn-save" id="pa-save-btn" onclick="addPattern()">Add pattern</button>
+            <button class="btn-cancel" onclick="closePatternForm()">✕</button>
+          </div>
+        </div>
+        <div id="pattern-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-kupu">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin-bottom:0">Words I've used or remember</div>
+          <button class="add-btn" onclick="toggleForm('kupu-form')">+</button>
+        </div>
+        <div class="add-form" id="kupu-form">
+          <input type="hidden" id="ku-edit-id" />
+          <select id="ku-type-i">
+            <option value="Kupu">Kupu (word)</option>
+            <option value="Whakataukī">Whakataukī</option>
+            <option value="Karanga">Karanga</option>
+            <option value="Waiata">Waiata</option>
+          </select>
+          <input type="text" id="ku-word-i" placeholder="Kupu / whakataukī / karanga / waiata" />
+          <input type="text" id="ku-meaning-i" placeholder="Meaning" />
+          <input type="text" id="ku-context-i" placeholder="Where it came up (optional)" />
+          <div class="form-row">
+            <button class="btn-save" id="ku-save-btn" onclick="addKupu()">Add kupu</button>
+            <button class="btn-cancel" onclick="closeKupuForm()">✕</button>
+          </div>
+        </div>
+        <div id="kupu-list"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-screen="practice" onclick="showScreen('practice')">Practice</div>
+    <div class="nav-item" data-screen="library" onclick="showScreen('library')">Library</div>
+  </nav>
+</div>
+
+<script>
+const SB_URL = 'https://kbfioznddfkwkoulebqg.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZmlvem5kZGZrd2tvdWxlYnFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMjE4MzgsImV4cCI6MjA5Nzg5NzgzOH0.6EbnbEiejmfoDCIjze9mlmr4QWX-u9_1T4nUP1enGWM';
+const H_GET = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+const H_POST = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+async function dbSelect(table, opts={}) {
+  let url = SB_URL + '/rest/v1/' + table + '?select=*';
+  if(opts.order) url += '&order=' + opts.order + '.' + (opts.asc ? 'asc' : 'desc');
+  if(opts.limit) url += '&limit=' + opts.limit;
+  if(opts.eq) url += '&' + opts.eq[0] + '=eq.' + opts.eq[1];
+  try {
+    const r = await fetch(url, {method:'GET', headers: H_GET});
+    if(!r.ok) return {data:null, error:{message:'HTTP '+r.status}};
+    return {data: await r.json(), error:null};
+  } catch(e) { return {data:null, error:{message:e.message}}; }
+}
+async function dbInsert(table, body) {
+  try {
+    const arr = Array.isArray(body) ? body : [body];
+    const r = await fetch(SB_URL+'/rest/v1/'+table, {method:'POST', headers:H_POST, body:JSON.stringify(arr)});
+    if(!r.ok) return {data:null, error:{message:'HTTP '+r.status}};
+    const data = await r.json();
+    return {data: Array.isArray(data)?data:[data], error:null};
+  } catch(e) { return {data:null, error:{message:e.message}}; }
+}
+async function dbUpdate(table, body, col, val) {
+  try {
+    const r = await fetch(SB_URL+'/rest/v1/'+table+'?'+col+'=eq.'+val, {method:'PATCH', headers:H_POST, body:JSON.stringify(body)});
+    return {error: r.ok ? null : {message:'HTTP '+r.status}};
+  } catch(e) { return {error:{message:e.message}}; }
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#4a3428;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;z-index:999;';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+}
+function toggleForm(id) { document.getElementById(id).classList.toggle('visible'); }
+
+// ── NAV ──
+function showScreen(name) {
+  document.getElementById('screen-practice').style.display = name==='practice' ? 'block' : 'none';
+  document.getElementById('screen-library').style.display = name==='library' ? 'block' : 'none';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.screen===name));
+  if(name==='practice') renderPractice();
+  if(name==='library') renderLibraryAll();
+}
+function switchLibTab(tab) {
+  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  document.querySelectorAll('.lib-panel').forEach(p=>p.classList.toggle('active', p.id==='lib-'+tab));
+}
+
+// ── PRACTICE ──
+function getWeekStart() {
+  const d = new Date(); const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  return new Date(d.setDate(diff)).toISOString().slice(0,10);
+}
+let activeFrame = null;
+
+async function renderPractice() {
+  const el = document.getElementById('practice-frame');
+  const {data} = await dbSelect('capability_patterns', {order:'created_at', asc:false, limit:1});
+  if(!data || !data.length) { el.innerHTML = '<div class="empty-state">No active pattern yet — add one from the Library, or use a Rerenga Kōrero example.</div>'; return; }
+  activeFrame = data[0];
+  const weekStart = getWeekStart();
+  const {data: logs} = await dbSelect('capability_repetitions', {eq:['week_start', weekStart]});
+  const repCount = logs ? logs.filter(l=>l.pattern_id===activeFrame.id).length : 0;
+  const target = 5;
+  const teAkaUrl = 'https://maoridictionary.co.nz/search?keywords=' + encodeURIComponent(activeFrame.pattern_name || activeFrame.core_frame || '');
+  const locked = activeFrame.status==='no_source_found';
+  const rows = Array.from({length: target}).map((_, i) => {
+    const done = i < repCount;
+    return `<div class="repeat-row ${done?'done':''}" ${locked||done?'':`onclick="quickRep()"`}>
+      <span class="repeat-check">${done?'✓':i+1}</span>
+      <span class="repeat-text">${activeFrame.core_frame || activeFrame.pattern_name}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="frame-card">
+    ${activeFrame.context ? `<div class="frame-meaning">${activeFrame.context}</div>` : ''}
+    ${activeFrame.status==='no_source_found' ? '<span class="tag tag-dim">⚠ No source found — needs a fluent speaker</span>' :
+      activeFrame.status==='unverified' ? `<div><span class="tag tag-dim">⚠ Unverified</span></div><a class="check-teaka" href="${teAkaUrl}" target="_blank">Check on Te Aka →</a>` :
+      '<span class="tag tag-sage">Verified</span>'}
+    <div class="repeat-list" style="margin-top:14px">${rows}</div>
+    <div style="text-align:center;font-size:12px;color:var(--cacao-light);margin-top:10px">${repCount} of ${target} said this week — tap a line once you've said it</div>
+    <div id="note-panel"></div>
+  </div>`;
+}
+
+function quickRep() { saveRep(false); }
+
+function handleSaidIt() {
+  document.getElementById('note-panel').innerHTML = `<div class="note-panel">
+    <textarea id="note-text" placeholder="What actually came out? (optional)"></textarea>
+    <div class="note-actions">
+      <button class="skip-note" onclick="saveRep(false)">Skip note</button>
+      <button class="save-note" onclick="saveRep(true)">Save</button>
+    </div>
+  </div>`;
+}
+
+async function saveRep(withNote) {
+  if(!activeFrame) return;
+  const noteText = withNote ? document.getElementById('note-text').value.trim() : '';
+  await dbInsert('capability_repetitions', {
+    pattern_id: activeFrame.id, logged_at: new Date().toISOString(),
+    method: withNote && noteText ? 'text_note' : 'tap', raw_text: noteText || null, week_start: getWeekStart()
+  });
+  await dbUpdate('capability_patterns', {
+    repetition_count: (activeFrame.repetition_count||0)+1,
+    ...(withNote && noteText ? {spontaneous_attempt: noteText} : {})
+  }, 'id', activeFrame.id);
+  document.getElementById('note-panel').innerHTML = '<div class="confirm">Logged. Ka pai.</div>';
+  setTimeout(renderPractice, 1200);
+}
+
+// ── LIBRARY ──
+function renderLibraryAll() { renderRerenga(); renderPhrases(); renderPatterns(); renderKupu(); }
+
+let capRerenga = [];
+function rerengaHTML(r) {
+  const examples = (r.examples||[]).map(ex => `<div class="kupu-context" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+    <span>${ex}</span><button class="use-btn" onclick='useRerenga(${JSON.stringify(r.id)}, ${JSON.stringify(ex)})'>Use this</button>
+  </div>`).join('');
+  return `<div class="kupu-card" style="flex-direction:column;align-items:stretch">
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+      <div class="kupu-word">${r.order_index}. ${r.title}</div>
+      ${!r.verified ? '<span class="tag tag-dim">⚠</span>' : '<span class="tag tag-sage">✓</span>'}
+    </div>
+    ${r.when_to_use ? `<div class="kupu-meaning">${r.when_to_use}</div>` : ''}
+    ${r.pattern_template ? `<div class="kupu-context" style="font-weight:600">${r.pattern_template}</div>` : ''}
+    <div style="margin-top:6px">${examples}</div>
+  </div>`;
+}
+async function renderRerenga() {
+  const el = document.getElementById('rerenga-list');
+  if(!capRerenga.length) { const {data} = await dbSelect('capability_rerenga', {order:'order_index', asc:true}); capRerenga = data || []; }
+  el.innerHTML = capRerenga.length ? capRerenga.map(rerengaHTML).join('') : '<div class="empty-state">No patterns loaded.</div>';
+}
+async function useRerenga(id, exampleText) {
+  const r = capRerenga.find(x=>x.id===id);
+  const {data} = await dbInsert('capability_patterns', {
+    pattern_name: r.title, core_frame: exampleText, context: r.when_to_use || '',
+    stage: 'recognise', verified: r.verified, status: r.verified?'verified':'unverified', repetition_count: 0
+  });
+  if(data) toast(r.verified ? 'Added to practice' : 'Added — still unverified');
+}
+
+let capPhrases = [];
+function phraseHTML(p) {
+  return `<div class="kupu-card"><div style="flex:1">
+    <div class="kupu-word">${p.phrase}</div><div class="kupu-meaning">${p.meaning||''}</div>
+    ${p.context_tag?`<div class="kupu-context">${p.context_tag}</div>`:''}<div class="kupu-context" style="font-style:italic">Source: ${p.source}</div>
+  </div><div style="display:flex;flex-direction:column;gap:6px">
+    <button class="use-btn" onclick='usePhrase(${JSON.stringify(p.id)})'>Use this</button>
+    <button class="edit-btn" onclick='editPhrase(${JSON.stringify(p.id)})'>Edit</button>
+  </div></div>`;
+}
+async function renderPhrases() {
+  const el = document.getElementById('phrase-list');
+  if(!capPhrases.length) { const {data} = await dbSelect('capability_phrasebank', {order:'created_at', asc:false}); capPhrases = data || []; }
+  el.innerHTML = capPhrases.length ? capPhrases.map(phraseHTML).join('') : '<div class="empty-state">No phrases yet.</div>';
+}
+function editPhrase(id) {
+  const p = capPhrases.find(x=>x.id===id);
+  document.getElementById('ph-edit-id').value = id;
+  document.getElementById('ph-phrase-i').value = p.phrase||'';
+  document.getElementById('ph-meaning-i').value = p.meaning||'';
+  document.getElementById('ph-context-i').value = p.context_tag||'';
+  document.getElementById('ph-source-i').value = p.source||'';
+  document.getElementById('ph-save-btn').textContent = 'Save changes';
+  document.getElementById('phrase-form').classList.add('visible');
+}
+function closePhraseForm() { document.getElementById('ph-edit-id').value=''; document.getElementById('ph-save-btn').textContent='Add phrase'; toggleForm('phrase-form'); }
+async function addPhrase() {
+  const editId = document.getElementById('ph-edit-id').value;
+  const phrase = document.getElementById('ph-phrase-i').value.trim();
+  const meaning = document.getElementById('ph-meaning-i').value.trim();
+  const context_tag = document.getElementById('ph-context-i').value.trim();
+  const source = document.getElementById('ph-source-i').value.trim();
+  if(!phrase || !source) return;
+  if(editId) { await dbUpdate('capability_phrasebank', {phrase,meaning,context_tag,source}, 'id', editId); toast('Updated'); }
+  else { const {data} = await dbInsert('capability_phrasebank', {phrase,meaning,context_tag,source}); if(data) capPhrases.unshift(data[0]); toast('Added'); }
+  ['ph-phrase-i','ph-meaning-i','ph-context-i','ph-source-i'].forEach(id=>document.getElementById(id).value='');
+  closePhraseForm(); capPhrases=[]; renderPhrases();
+}
+async function usePhrase(id) {
+  const p = capPhrases.find(x=>x.id===id);
+  const {data} = await dbInsert('capability_patterns', {pattern_name:`From ${p.source}`, core_frame:p.phrase, context:p.context_tag||p.meaning||'', stage:'recognise', verified:true, status:'verified', repetition_count:0});
+  if(data) toast('Added to practice');
+}
+
+let capPatterns = [];
+function patternHTML(p) {
+  return `<div class="kupu-card"><div style="flex:1">
+    <div class="kupu-word">${p.pattern_name}</div><div class="kupu-meaning">${p.core_frame||''}</div>
+    ${p.context?`<div class="kupu-context">${p.context}</div>`:''}
+    <div class="kupu-context">${p.status==='verified'?'<span class="tag tag-sage">Verified</span>':'<span class="tag tag-dim">Unverified</span>'} · ${p.repetition_count||0} reps</div>
+  </div><button class="edit-btn" onclick='editPattern(${JSON.stringify(p.id)})'>Edit</button></div>`;
+}
+async function renderPatterns() {
+  const el = document.getElementById('pattern-list');
+  const {data} = await dbSelect('capability_patterns', {order:'created_at', asc:false});
+  capPatterns = data || [];
+  el.innerHTML = capPatterns.length ? capPatterns.map(patternHTML).join('') : '<div class="empty-state">No patterns yet.</div>';
+}
+function editPattern(id) {
+  const p = capPatterns.find(x=>x.id===id);
+  document.getElementById('pa-edit-id').value = id;
+  document.getElementById('pa-name-i').value = p.pattern_name||'';
+  document.getElementById('pa-frame-i').value = p.core_frame||'';
+  document.getElementById('pa-context-i').value = p.context||'';
+  document.getElementById('pa-save-btn').textContent = 'Save changes';
+  document.getElementById('pattern-form').classList.add('visible');
+}
+function closePatternForm() { document.getElementById('pa-edit-id').value=''; document.getElementById('pa-save-btn').textContent='Add pattern'; toggleForm('pattern-form'); }
+async function addPattern() {
+  const editId = document.getElementById('pa-edit-id').value;
+  const pattern_name = document.getElementById('pa-name-i').value.trim();
+  const core_frame = document.getElementById('pa-frame-i').value.trim();
+  const context = document.getElementById('pa-context-i').value.trim();
+  if(!pattern_name) return;
+  if(editId) await dbUpdate('capability_patterns', {pattern_name,core_frame,context}, 'id', editId);
+  else await dbInsert('capability_patterns', {pattern_name,core_frame,context,stage:'recognise',verified:false,status:'unverified',repetition_count:0});
+  ['pa-name-i','pa-frame-i','pa-context-i'].forEach(id=>document.getElementById(id).value='');
+  closePatternForm(); renderPatterns();
+}
+
+let capKupu = [];
+const KUPU_TYPE_CLASS = {Kupu:'tag-sage', 'Whakataukī':'tag-sage', Karanga:'tag-sage', Waiata:'tag-sage'};
+function kupuHTML(k) {
+  return `<div class="kupu-card"><div style="flex:1">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="kupu-word">${k.word}</div><span class="tag ${KUPU_TYPE_CLASS[k.type]||'tag-sage'}">${k.type||'Kupu'}</span>${k.verified?'<span class="tag tag-sage">✓ Verified</span>':'<span class="tag tag-dim">⚠ Unverified</span>'}</div>
+    <div class="kupu-meaning">${k.meaning||''}</div>${k.context?`<div class="kupu-context">${k.context}</div>`:''}
+  </div><button class="edit-btn" onclick='editKupu(${JSON.stringify(k.id)})'>Edit</button></div>`;
+}
+async function renderKupu() {
+  const el = document.getElementById('kupu-list');
+  if(!capKupu.length) { const {data} = await dbSelect('capability_kupu', {order:'created_at', asc:false}); capKupu = data || []; }
+  el.innerHTML = capKupu.length ? capKupu.map(kupuHTML).join('') : '<div class="empty-state">No kupu logged yet.</div>';
+}
+function editKupu(id) {
+  const k = capKupu.find(x=>x.id===id);
+  document.getElementById('ku-edit-id').value = id;
+  document.getElementById('ku-type-i').value = k.type||'Kupu';
+  document.getElementById('ku-word-i').value = k.word||'';
+  document.getElementById('ku-meaning-i').value = k.meaning||'';
+  document.getElementById('ku-context-i').value = k.context||'';
+  document.getElementById('ku-save-btn').textContent = 'Save changes';
+  document.getElementById('kupu-form').classList.add('visible');
+}
+function closeKupuForm() { document.getElementById('ku-edit-id').value=''; document.getElementById('ku-save-btn').textContent='Add kupu'; toggleForm('kupu-form'); }
+async function addKupu() {
+  const editId = document.getElementById('ku-edit-id').value;
+  const type = document.getElementById('ku-type-i').value;
+  const word = document.getElementById('ku-word-i').value.trim();
+  const meaning = document.getElementById('ku-meaning-i').value.trim();
+  const context = document.getElementById('ku-context-i').value.trim();
+  if(!word) return;
+  if(editId) await dbUpdate('capability_kupu', {type,word,meaning,context}, 'id', editId);
+  else { const {data} = await dbInsert('capability_kupu', {type,word,meaning,context,verified:true}); if(data) capKupu.unshift(data[0]); }
+  ['ku-word-i','ku-meaning-i','ku-context-i'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ku-type-i').value='Kupu';
+  closeKupuForm(); capKupu=[]; renderKupu();
+}
+
+// ── INIT ──
+renderPractice();
+</script>
+</body>
+</html>
