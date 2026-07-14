@@ -51,6 +51,7 @@
   .repeat-check { width: 26px; height: 26px; border-radius: 50%; background: var(--white); border: 1px solid #ddd0b3; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--cacao-light); flex-shrink: 0; }
   .repeat-row.done .repeat-check { background: var(--sage-dark); border-color: var(--sage-dark); color: #fff; }
   .repeat-text { font-size: 18px; font-weight: 500; }
+  .note-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); font-size: 11px; font-weight: 700; color: var(--cacao-light); cursor: pointer; }
   .empty-state { color: var(--cacao-light); font-size: 14px; padding: 20px 0; }
 
   /* Library cards */
@@ -251,9 +252,12 @@ async function renderPractice() {
   const locked = activeFrame.status==='no_source_found';
   const rows = Array.from({length: target}).map((_, i) => {
     const done = i < repCount;
-    return `<div class="repeat-row ${done?'done':''}" ${locked||done?'':`onclick="quickRep()"`}>
-      <span class="repeat-check">${done?'✓':i+1}</span>
-      <span class="repeat-text">${activeFrame.core_frame || activeFrame.pattern_name}</span>
+    return `<div class="repeat-row ${done?'done':''}">
+      <div ${locked||done?'':`onclick="quickRep()"`} style="flex:1;display:flex;align-items:center;gap:12px;cursor:${locked||done?'default':'pointer'}">
+        <span class="repeat-check">${done?'✓':i+1}</span>
+        <span class="repeat-text">${activeFrame.core_frame || activeFrame.pattern_name}</span>
+      </div>
+      ${!done && !locked ? `<button class="note-btn" onclick="openNoteFor(event)">+ note</button>` : ''}
     </div>`;
   }).join('');
   el.innerHTML = `<div class="frame-card">
@@ -268,6 +272,11 @@ async function renderPractice() {
 }
 
 function quickRep() { saveRep(false); }
+
+function openNoteFor(evt) {
+  evt.stopPropagation();
+  handleSaidIt();
+}
 
 function handleSaidIt() {
   document.getElementById('note-panel').innerHTML = `<div class="note-panel">
@@ -290,8 +299,21 @@ async function saveRep(withNote) {
     repetition_count: (activeFrame.repetition_count||0)+1,
     ...(withNote && noteText ? {spontaneous_attempt: noteText} : {})
   }, 'id', activeFrame.id);
+  if(withNote && noteText && activeFrame.source_rerenga_id) {
+    await appendRerengaExample(activeFrame.source_rerenga_id, noteText);
+  }
   document.getElementById('note-panel').innerHTML = '<div class="confirm">Logged. Ka pai.</div>';
   setTimeout(renderPractice, 1200);
+}
+
+async function appendRerengaExample(rerengaId, text) {
+  const {data} = await dbSelect('capability_rerenga', {eq:['id', rerengaId]});
+  if(!data || !data.length) return;
+  const current = data[0].examples || [];
+  if(current.includes(text)) return; // no duplicates
+  const updated = [...current, text];
+  await dbUpdate('capability_rerenga', {examples: updated}, 'id', rerengaId);
+  capRerenga = []; // force refresh next time Library loads
 }
 
 // ── LIBRARY ──
@@ -321,7 +343,8 @@ async function useRerenga(id, exampleText) {
   const r = capRerenga.find(x=>x.id===id);
   const {data} = await dbInsert('capability_patterns', {
     pattern_name: r.title, core_frame: exampleText, context: r.when_to_use || '',
-    stage: 'recognise', verified: r.verified, status: r.verified?'verified':'unverified', repetition_count: 0
+    stage: 'recognise', verified: r.verified, status: r.verified?'verified':'unverified', repetition_count: 0,
+    source_rerenga_id: r.id
   });
   if(data) toast(r.verified ? 'Added to practice' : 'Added — still unverified');
 }
