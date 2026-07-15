@@ -98,6 +98,7 @@
     <div id="screen-library" style="display:none">
       <div class="lib-tabs">
         <div class="lib-tab active" data-tab="rerenga" onclick="switchLibTab('rerenga')">Rerenga Kōrero</div>
+        <div class="lib-tab" data-tab="patai" onclick="switchLibTab('patai')">Ngā Pātai</div>
         <div class="lib-tab" data-tab="phrases" onclick="switchLibTab('phrases')">Phrase Bank</div>
         <div class="lib-tab" data-tab="patterns" onclick="switchLibTab('patterns')">My Patterns</div>
         <div class="lib-tab" data-tab="kupu" onclick="switchLibTab('kupu')">Kupu Bank</div>
@@ -105,6 +106,10 @@
 
       <div class="lib-panel active" id="lib-rerenga">
         <div id="rerenga-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-patai">
+        <div id="patai-list"><div class="loading">Loading...</div></div>
       </div>
 
       <div class="lib-panel" id="lib-phrases">
@@ -321,9 +326,11 @@ function renderLibraryAll() { renderRerenga(); renderPhrases(); renderPatterns()
 
 let capRerenga = [];
 function rerengaHTML(r) {
-  const examples = (r.examples||[]).map(ex => `<div class="kupu-context" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-    <span>${ex}</span><button class="use-btn" onclick='useRerenga(${JSON.stringify(r.id)}, ${JSON.stringify(ex)})'>Use this</button>
-  </div>`).join('');
+  const examples = (r.examples||[]).length
+    ? (r.examples||[]).map(ex => `<div class="kupu-context" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <span>${ex}</span><button class="use-btn" onclick='useRerenga(${JSON.stringify(r.id)}, ${JSON.stringify(ex)})'>Use this</button>
+      </div>`).join('')
+    : `<div class="kupu-context" style="font-style:italic">No examples yet — add one from real use.</div>`;
   return `<div class="kupu-card" style="flex-direction:column;align-items:stretch">
     <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
       <div class="kupu-word">${r.order_index}. ${r.title}</div>
@@ -335,9 +342,13 @@ function rerengaHTML(r) {
   </div>`;
 }
 async function renderRerenga() {
-  const el = document.getElementById('rerenga-list');
+  const elR = document.getElementById('rerenga-list');
+  const elP = document.getElementById('patai-list');
   if(!capRerenga.length) { const {data} = await dbSelect('capability_rerenga', {order:'order_index', asc:true}); capRerenga = data || []; }
-  el.innerHTML = capRerenga.length ? capRerenga.map(rerengaHTML).join('') : '<div class="empty-state">No patterns loaded.</div>';
+  const rerenga = capRerenga.filter(r => (r.category||'rerenga')==='rerenga');
+  const patai = capRerenga.filter(r => r.category==='patai');
+  if(elR) elR.innerHTML = rerenga.length ? rerenga.map(rerengaHTML).join('') : '<div class="empty-state">No patterns loaded.</div>';
+  if(elP) elP.innerHTML = patai.length ? patai.map(rerengaHTML).join('') : '<div class="empty-state">No question patterns loaded.</div>';
 }
 async function useRerenga(id, exampleText) {
   const r = capRerenga.find(x=>x.id===id);
