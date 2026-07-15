@@ -99,6 +99,8 @@
       <div class="lib-tabs">
         <div class="lib-tab active" data-tab="rerenga" onclick="switchLibTab('rerenga')">Rerenga Kōrero</div>
         <div class="lib-tab" data-tab="patai" onclick="switchLibTab('patai')">Ngā Pātai</div>
+        <div class="lib-tab" data-tab="whakautu" onclick="switchLibTab('whakautu')">Ngā Whakautu</div>
+        <div class="lib-tab" data-tab="progress" onclick="switchLibTab('progress')">Progress</div>
         <div class="lib-tab" data-tab="phrases" onclick="switchLibTab('phrases')">Phrase Bank</div>
         <div class="lib-tab" data-tab="patterns" onclick="switchLibTab('patterns')">My Patterns</div>
         <div class="lib-tab" data-tab="kupu" onclick="switchLibTab('kupu')">Kupu Bank</div>
@@ -110,6 +112,14 @@
 
       <div class="lib-panel" id="lib-patai">
         <div id="patai-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-whakautu">
+        <div id="whakautu-list"><div class="loading">Loading...</div></div>
+      </div>
+
+      <div class="lib-panel" id="lib-progress">
+        <div id="progress-list"><div class="loading">Loading...</div></div>
       </div>
 
       <div class="lib-panel" id="lib-phrases">
@@ -322,7 +332,7 @@ async function appendRerengaExample(rerengaId, text) {
 }
 
 // ── LIBRARY ──
-function renderLibraryAll() { renderRerenga(); renderPhrases(); renderPatterns(); renderKupu(); }
+function renderLibraryAll() { renderRerenga(); renderPhrases(); renderPatterns(); renderKupu(); renderProgress(); }
 
 let capRerenga = [];
 function rerengaHTML(r) {
@@ -344,11 +354,38 @@ function rerengaHTML(r) {
 async function renderRerenga() {
   const elR = document.getElementById('rerenga-list');
   const elP = document.getElementById('patai-list');
+  const elW = document.getElementById('whakautu-list');
   if(!capRerenga.length) { const {data} = await dbSelect('capability_rerenga', {order:'order_index', asc:true}); capRerenga = data || []; }
   const rerenga = capRerenga.filter(r => (r.category||'rerenga')==='rerenga');
   const patai = capRerenga.filter(r => r.category==='patai');
+  const whakautu = capRerenga.filter(r => r.category==='whakautu');
   if(elR) elR.innerHTML = rerenga.length ? rerenga.map(rerengaHTML).join('') : '<div class="empty-state">No patterns loaded.</div>';
   if(elP) elP.innerHTML = patai.length ? patai.map(rerengaHTML).join('') : '<div class="empty-state">No question patterns loaded.</div>';
+  if(elW) elW.innerHTML = whakautu.length ? whakautu.map(rerengaHTML).join('') : '<div class="empty-state">No response patterns loaded.</div>';
+}
+
+// ── PROGRESS DASHBOARD ──
+// 🔴 0 reps logged · 🟡 1-4 reps · 🟢 5+ reps (crosses the weekly automation target)
+function progressDot(reps) {
+  if(reps >= 5) return '🟢';
+  if(reps >= 1) return '🟡';
+  return '🔴';
+}
+async function renderProgress() {
+  const el = document.getElementById('progress-list');
+  if(!el) return;
+  const {data: patterns} = await dbSelect('capability_patterns', {order:'created_at', asc:false});
+  if(!patterns || !patterns.length) { el.innerHTML = '<div class="empty-state">No patterns practiced yet.</div>'; return; }
+  const grouped = {};
+  patterns.forEach(p => {
+    const key = p.pattern_name || 'Untitled';
+    if(!grouped[key]) grouped[key] = 0;
+    grouped[key] = Math.max(grouped[key], p.repetition_count || 0);
+  });
+  const rows = Object.entries(grouped).sort((a,b) => b[1]-a[1]).map(([name, reps]) =>
+    `<div class="kupu-card"><div style="flex:1"><div class="kupu-word">${progressDot(reps)} ${name}</div><div class="kupu-meaning">${reps} reps logged</div></div></div>`
+  ).join('');
+  el.innerHTML = `<div class="section-label">By pattern, most-practiced first</div>${rows}`;
 }
 async function useRerenga(id, exampleText) {
   const r = capRerenga.find(x=>x.id===id);
