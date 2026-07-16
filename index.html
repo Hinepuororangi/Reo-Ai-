@@ -265,6 +265,9 @@ async function renderPractice() {
   const target = 5;
   const teAkaUrl = 'https://maoridictionary.co.nz/search?keywords=' + encodeURIComponent(activeFrame.pattern_name || activeFrame.core_frame || '');
   const locked = activeFrame.status==='no_source_found';
+
+  if(repCount >= target) { renderBuildSentence(el); return; }
+
   const rows = Array.from({length: target}).map((_, i) => {
     const done = i < repCount;
     return `<div class="repeat-row ${done?'done':''}">
@@ -284,6 +287,41 @@ async function renderPractice() {
     <div style="text-align:center;font-size:12px;color:var(--cacao-light);margin-top:10px">${repCount} of ${target} said this week — tap a line once you've said it</div>
     <div id="note-panel"></div>
   </div>`;
+}
+
+// Once a pattern hits 5 reps, switch from repeating it to building a NEW
+// sentence with the same structure — the Increase Complexity step.
+async function renderBuildSentence(el) {
+  let template = activeFrame.pattern_template || null;
+  let words = [];
+  if(activeFrame.source_rerenga_id) {
+    const {data} = await dbSelect('capability_rerenga', {eq:['id', activeFrame.source_rerenga_id]});
+    if(data && data.length) { template = data[0].pattern_template; words = data[0].practice_words || []; }
+  }
+  el.innerHTML = `<div class="frame-card">
+    <div class="confirm" style="margin-top:0">5 of 5 said this week. Ka pai — that pattern's automated.</div>
+    <div class="section-label" style="margin-top:18px">Now build a new sentence</div>
+    ${template ? `<div class="kupu-context" style="font-weight:600;margin-bottom:10px">${template}</div>` : `<div class="kupu-meaning" style="margin-bottom:10px">Try a new sentence using the same idea as: ${activeFrame.core_frame}</div>`}
+    ${words.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${words.map(w=>`<button class="note-btn" onclick="insertWord('${w}')">${w}</button>`).join('')}</div>` : ''}
+    <textarea id="build-sentence-i" placeholder="Type your new sentence here" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd0b3;font-family:'DM Sans';font-size:15px;min-height:60px;margin-bottom:10px"></textarea>
+    <button class="say-btn" onclick="saveBuiltSentence()">Save & start practising this</button>
+  </div>`;
+}
+function insertWord(w) {
+  const t = document.getElementById('build-sentence-i');
+  t.value = t.value ? t.value + ' ' + w : w;
+  t.focus();
+}
+async function saveBuiltSentence() {
+  const text = document.getElementById('build-sentence-i').value.trim();
+  if(!text) return;
+  await dbInsert('capability_patterns', {
+    pattern_name: activeFrame.pattern_name, core_frame: text, context: activeFrame.context || '',
+    stage: 'recognise', verified: false, status: 'unverified', repetition_count: 0,
+    source_rerenga_id: activeFrame.source_rerenga_id || null
+  });
+  toast('New sentence saved — worth a quick check before you drill it');
+  renderPractice();
 }
 
 function quickRep() { saveRep(false); }
