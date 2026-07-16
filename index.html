@@ -569,18 +569,43 @@ async function addKupu() {
 let quizQuestions = [], quizIndex = 0, quizScore = 0;
 function shuffle(arr) { return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
 
+async function buildQuestionPool() {
+  const pool = []; // each: {prompt, correct, category}
+
+  // Kupu — word → meaning
+  const {data: kupu} = await dbSelect('capability_kupu', {eq:['verified','true']});
+  (kupu||[]).filter(k=>k.word && k.meaning).forEach(k => pool.push({prompt:k.word, correct:k.meaning, category:'kupu'}));
+
+  // Rerenga / Pātai / Whakautu — title → when_to_use
+  const {data: rerenga} = await dbSelect('capability_rerenga', {eq:['verified','true']});
+  (rerenga||[]).filter(r=>r.title && r.when_to_use).forEach(r => pool.push({prompt:r.title, correct:r.when_to_use, category:'pattern'}));
+
+  // My Patterns / promoted sentences — full sentence → context
+  const {data: patterns} = await dbSelect('capability_patterns', {eq:['verified','true']});
+  (patterns||[]).filter(p=>p.core_frame && p.context).forEach(p => pool.push({prompt:p.core_frame, correct:p.context, category:'sentence'}));
+
+  // Phrase Bank — phrase → meaning
+  const {data: phrases} = await dbSelect('capability_phrasebank');
+  (phrases||[]).filter(p=>p.phrase && p.meaning).forEach(p => pool.push({prompt:p.phrase, correct:p.meaning, category:'sentence'}));
+
+  return pool;
+}
+
 async function startQuiz() {
   const el = document.getElementById('quiz-body');
-  const {data} = await dbSelect('capability_kupu', {eq:['verified','true']});
-  const pool = (data||[]).filter(k=>k.word && k.meaning);
-  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Need at least 4 verified kupu with meanings to quiz — you have ${pool.length}. Add more in Library → Kupu Bank.</div>`; return; }
-  quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(k => {
-    const distractors = shuffle(pool.filter(p=>p.id!==k.id)).slice(0,3).map(p=>p.meaning);
-    return { word: k.word, correct: k.meaning, options: shuffle([k.meaning, ...distractors]) };
+  const pool = await buildQuestionPool();
+  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Need at least 4 verified items with meanings/context to quiz — you have ${pool.length}. Add more across Kupu Bank, patterns, or Phrase Bank.</div>`; return; }
+  quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(q => {
+    let sameCategory = pool.filter(p => p.category===q.category && p.correct!==q.correct);
+    let distractorSource = sameCategory.length >= 3 ? sameCategory : pool.filter(p=>p.correct!==q.correct);
+    const distractors = shuffle(distractorSource).slice(0,3).map(p=>p.correct);
+    return { prompt: q.prompt, correct: q.correct, category: q.category, options: shuffle([q.correct, ...distractors]) };
   });
   quizIndex = 0; quizScore = 0;
   renderQuizQuestion();
 }
+
+const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence'};
 
 function renderQuizQuestion() {
   const el = document.getElementById('quiz-body');
@@ -594,8 +619,8 @@ function renderQuizQuestion() {
   }
   const q = quizQuestions[quizIndex];
   el.innerHTML = `<div class="frame-card">
-    <div class="kupu-context" style="margin-bottom:8px">Question ${quizIndex+1} of ${quizQuestions.length} · Score: ${quizScore}</div>
-    <div class="frame-text" style="margin-bottom:16px">${q.word}</div>
+    <div class="kupu-context" style="margin-bottom:8px">Question ${quizIndex+1} of ${quizQuestions.length} · Score: ${quizScore} · <span class="tag tag-sage" style="padding:2px 7px">${QUIZ_CATEGORY_LABEL[q.category]}</span></div>
+    <div class="frame-text" style="margin-bottom:16px">${q.prompt}</div>
     <div style="display:flex;flex-direction:column;gap:8px">
       ${q.options.map(opt => `<button class="quiz-option" onclick='answerQuiz(${JSON.stringify(opt)})'>${opt}</button>`).join('')}
     </div>
