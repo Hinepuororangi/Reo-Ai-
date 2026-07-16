@@ -52,6 +52,10 @@
   .repeat-row.done .repeat-check { background: var(--sage-dark); border-color: var(--sage-dark); color: #fff; }
   .repeat-text { font-size: 18px; font-weight: 500; }
   .note-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); font-size: 11px; font-weight: 700; color: var(--cacao-light); cursor: pointer; }
+  .quiz-option { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--white); font-family: 'DM Sans'; font-size: 15px; text-align: left; cursor: pointer; color: var(--cacao); }
+  .quiz-option:disabled { cursor: default; }
+  .quiz-option.correct { background: #eef2ea; border-color: var(--sage-dark); font-weight: 700; }
+  .quiz-option.wrong { background: #fbeee9; border-color: var(--error); }
   .empty-state { color: var(--cacao-light); font-size: 14px; padding: 20px 0; }
 
   /* Library cards */
@@ -183,11 +187,17 @@
         <div id="kupu-list"><div class="loading">Loading...</div></div>
       </div>
     </div>
+    <!-- QUIZ SCREEN -->
+    <div id="screen-quiz" style="display:none">
+      <div class="section-label">Quiz — verified kupu only</div>
+      <div id="quiz-body"><div class="loading">Loading...</div></div>
+    </div>
   </main>
 
   <nav class="bottom-nav">
     <div class="nav-item active" data-screen="practice" onclick="showScreen('practice')">Practice</div>
     <div class="nav-item" data-screen="library" onclick="showScreen('library')">Library</div>
+    <div class="nav-item" data-screen="quiz" onclick="showScreen('quiz')">Quiz</div>
   </nav>
 </div>
 
@@ -237,9 +247,11 @@ function toggleForm(id) { document.getElementById(id).classList.toggle('visible'
 function showScreen(name) {
   document.getElementById('screen-practice').style.display = name==='practice' ? 'block' : 'none';
   document.getElementById('screen-library').style.display = name==='library' ? 'block' : 'none';
+  document.getElementById('screen-quiz').style.display = name==='quiz' ? 'block' : 'none';
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.screen===name));
   if(name==='practice') renderPractice();
   if(name==='library') renderLibraryAll();
+  if(name==='quiz') startQuiz();
 }
 function switchLibTab(tab) {
   document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
@@ -552,6 +564,58 @@ async function addKupu() {
   document.getElementById('ku-type-i').value='Kupu';
   closeKupuForm(); capKupu=[]; renderKupu();
 }
+
+// ── QUIZ ──
+let quizQuestions = [], quizIndex = 0, quizScore = 0;
+function shuffle(arr) { return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
+
+async function startQuiz() {
+  const el = document.getElementById('quiz-body');
+  const {data} = await dbSelect('capability_kupu', {eq:['verified','true']});
+  const pool = (data||[]).filter(k=>k.word && k.meaning);
+  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Need at least 4 verified kupu with meanings to quiz — you have ${pool.length}. Add more in Library → Kupu Bank.</div>`; return; }
+  quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(k => {
+    const distractors = shuffle(pool.filter(p=>p.id!==k.id)).slice(0,3).map(p=>p.meaning);
+    return { word: k.word, correct: k.meaning, options: shuffle([k.meaning, ...distractors]) };
+  });
+  quizIndex = 0; quizScore = 0;
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const el = document.getElementById('quiz-body');
+  if(quizIndex >= quizQuestions.length) {
+    el.innerHTML = `<div class="frame-card" style="text-align:center">
+      <div class="frame-text">${quizScore} / ${quizQuestions.length}</div>
+      <div class="frame-meaning">correct</div>
+      <button class="say-btn" style="margin-top:16px" onclick="startQuiz()">Quiz again</button>
+    </div>`;
+    return;
+  }
+  const q = quizQuestions[quizIndex];
+  el.innerHTML = `<div class="frame-card">
+    <div class="kupu-context" style="margin-bottom:8px">Question ${quizIndex+1} of ${quizQuestions.length} · Score: ${quizScore}</div>
+    <div class="frame-text" style="margin-bottom:16px">${q.word}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${q.options.map(opt => `<button class="quiz-option" onclick='answerQuiz(${JSON.stringify(opt)})'>${opt}</button>`).join('')}
+    </div>
+    <div id="quiz-feedback"></div>
+  </div>`;
+}
+
+function answerQuiz(chosen) {
+  const q = quizQuestions[quizIndex];
+  const correct = chosen === q.correct;
+  if(correct) quizScore++;
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    if(btn.textContent === q.correct) btn.classList.add('correct');
+    else if(btn.textContent === chosen) btn.classList.add('wrong');
+  });
+  document.getElementById('quiz-feedback').innerHTML = `<div class="confirm" style="background:${correct?'#eef2ea':'#fbeee9'};color:${correct?'var(--sage-dark)':'var(--error)'}">${correct?'Tika! Correct.':'Not quite — '+q.correct}</div>
+    <button class="say-btn" style="margin-top:10px" onclick="nextQuizQuestion()">Next</button>`;
+}
+function nextQuizQuestion() { quizIndex++; renderQuizQuestion(); }
 
 // ── INIT ──
 renderPractice();
