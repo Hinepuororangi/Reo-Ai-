@@ -191,11 +191,11 @@
     <div id="screen-quiz" style="display:none">
       <div class="section-label">Quiz</div>
       <div class="lib-tabs" id="quiz-subject-tabs">
-        <div class="lib-tab active" data-subject="all" onclick="selectQuizSubject('all')">All</div>
-        <div class="lib-tab" data-subject="kupu" onclick="selectQuizSubject('kupu')">Kupu</div>
-        <div class="lib-tab" data-subject="pattern" onclick="selectQuizSubject('pattern')">Patterns</div>
-        <div class="lib-tab" data-subject="sentence" onclick="selectQuizSubject('sentence')">Sentences</div>
+        <div class="lib-tab active" data-subject="reo-only" onclick="selectQuizSubject('reo-only')">Reo Only</div>
         <div class="lib-tab" data-subject="fill-blank" onclick="selectQuizSubject('fill-blank')">Fill the Blank</div>
+        <div class="lib-tab" data-subject="match-pattern" onclick="selectQuizSubject('match-pattern')">Match the Pattern</div>
+        <div class="lib-tab" data-subject="translation" onclick="selectQuizSubject('translation')">Translation (EN)</div>
+        <div class="lib-tab" data-subject="kupu" onclick="selectQuizSubject('kupu')">Kupu (EN)</div>
       </div>
       <div id="quiz-body"><div class="loading">Loading...</div></div>
     </div>
@@ -573,7 +573,7 @@ async function addKupu() {
 }
 
 // ── QUIZ ──
-let quizQuestions = [], quizIndex = 0, quizScore = 0, quizSubject = 'all';
+let quizQuestions = [], quizIndex = 0, quizScore = 0, quizSubject = 'reo-only';
 function shuffle(arr) { return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
 
 function selectQuizSubject(subject) {
@@ -619,6 +619,21 @@ async function buildQuestionPool() {
     });
   }
 
+  // Match the Pattern — Māori example → Māori pattern title. No English
+  // anywhere. "Which structure is this sentence using?"
+  const rerengaByCategory = {};
+  (rerenga||[]).forEach(r => {
+    if(!r.title || !(r.examples||[]).length) return;
+    if(!rerengaByCategory[r.category]) rerengaByCategory[r.category] = [];
+    rerengaByCategory[r.category].push(r);
+  });
+  Object.values(rerengaByCategory).forEach(group => {
+    if(group.length < 3) return; // need enough titles in the group for real options
+    group.forEach(r => {
+      pool.push({ prompt: r.examples[0], correct: r.title, category: 'match-pattern', optionPool: group.map(g=>g.title) });
+    });
+  });
+
   return dedupePool(pool);
 }
 
@@ -647,12 +662,14 @@ function uniqueByText(items, excludeText) {
 async function startQuiz() {
   const el = document.getElementById('quiz-body');
   let pool = await buildQuestionPool();
-  if(quizSubject !== 'all') pool = pool.filter(p => p.category === quizSubject);
-  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Not enough verified content in this subject yet — you have ${pool.length}, need at least 4. Try "All" or add more content in Library.</div>`; return; }
+  if(quizSubject === 'reo-only') pool = pool.filter(p => p.category==='fill-blank' || p.category==='match-pattern');
+  else if(quizSubject === 'translation') pool = pool.filter(p => p.category==='kupu' || p.category==='pattern' || p.category==='sentence');
+  else pool = pool.filter(p => p.category === quizSubject);
+  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Not enough verified content in this subject yet — you have ${pool.length}, need at least 4. Try "Reo Only" or add more content in Library.</div>`; return; }
   quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(q => {
-    if(q.category === 'fill-blank') {
+    if(q.category === 'fill-blank' || q.category === 'match-pattern') {
       const distractors = shuffle(q.optionPool.filter(m=>m!==q.correct)).slice(0,3);
-      return { prompt: q.prompt, correct: q.correct, category: 'fill-blank', options: shuffle([q.correct, ...distractors]) };
+      return { prompt: q.prompt, correct: q.correct, category: q.category, options: shuffle([q.correct, ...distractors]) };
     }
     let sameCategory = uniqueByText(pool.filter(p => p.category===q.category), q.correct);
     let distractorSource = sameCategory.length >= 3 ? sameCategory : uniqueByText(pool, q.correct);
@@ -663,7 +680,7 @@ async function startQuiz() {
   renderQuizQuestion();
 }
 
-const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence', 'fill-blank':'Fill the blank'};
+const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence', 'fill-blank':'Fill the blank', 'match-pattern':'Match the pattern'};
 
 function renderQuizQuestion() {
   const el = document.getElementById('quiz-body');
