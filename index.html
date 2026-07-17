@@ -581,8 +581,15 @@ async function buildQuestionPool() {
   (rerenga||[]).filter(r=>r.title && r.when_to_use).forEach(r => pool.push({prompt:r.title, correct:r.when_to_use, category:'pattern'}));
 
   // My Patterns / promoted sentences — full sentence → context
+  // Excludes template placeholders (e.g. "Kaua e [verb]") and leftover
+  // diagnostic-testing entries from before this build — those got marked
+  // verified in the blanket pass but aren't real, usable quiz content.
   const {data: patterns} = await dbSelect('capability_patterns', {eq:['verified','true']});
-  (patterns||[]).filter(p=>p.core_frame && p.context).forEach(p => pool.push({prompt:p.core_frame, correct:p.context, category:'sentence'}));
+  (patterns||[])
+    .filter(p => p.core_frame && p.context)
+    .filter(p => !/\[.*\]/.test(p.core_frame)) // no bracket placeholders
+    .filter(p => !/diagnostic/i.test(p.context)) // no leftover test labels
+    .forEach(p => pool.push({prompt:p.core_frame, correct:p.context, category:'sentence'}));
 
   // Phrase Bank — phrase → meaning
   const {data: phrases} = await dbSelect('capability_phrasebank');
