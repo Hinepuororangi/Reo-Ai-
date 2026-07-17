@@ -588,7 +588,44 @@ async function buildQuestionPool() {
   const {data: phrases} = await dbSelect('capability_phrasebank');
   (phrases||[]).filter(p=>p.phrase && p.meaning).forEach(p => pool.push({prompt:p.phrase, correct:p.meaning, category:'sentence'}));
 
-  return pool;
+  // Fill in the blank — blank out the tense/pattern marker from a Rerenga
+  // example, ask which marker fits. Safe: only uses markers already
+  // verified as real pattern openers, no invented content.
+  const markerPatterns = (rerenga||[]).filter(r => r.category==='rerenga' && r.marker && (r.examples||[]).length);
+  const allMarkers = [...new Set(markerPatterns.map(r=>r.marker))];
+  if(allMarkers.length >= 3) {
+    markerPatterns.forEach(r => {
+      const example = r.examples[0];
+      if(example.startsWith(r.marker)) {
+        const blanked = '___' + example.slice(r.marker.length);
+        pool.push({prompt: blanked, correct: r.marker, category:'fill-blank', optionPool: allMarkers});
+      }
+    });
+  }
+
+  return dedupePool(pool);
+}
+
+function dedupePool(pool) {
+  const seenPrompts = new Set();
+  return pool.filter(p => {
+    const key = p.prompt.trim().toLowerCase();
+    if(seenPrompts.has(key)) return false;
+    seenPrompts.add(key);
+    return true;
+  });
+}
+
+function uniqueByText(items, excludeText) {
+  const seen = new Set([excludeText.trim().toLowerCase()]);
+  const out = [];
+  for(const item of items) {
+    const key = item.correct.trim().toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
 }
 
 async function startQuiz() {
@@ -596,8 +633,12 @@ async function startQuiz() {
   const pool = await buildQuestionPool();
   if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Need at least 4 verified items with meanings/context to quiz — you have ${pool.length}. Add more across Kupu Bank, patterns, or Phrase Bank.</div>`; return; }
   quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(q => {
-    let sameCategory = pool.filter(p => p.category===q.category && p.correct!==q.correct);
-    let distractorSource = sameCategory.length >= 3 ? sameCategory : pool.filter(p=>p.correct!==q.correct);
+    if(q.category === 'fill-blank') {
+      const distractors = shuffle(q.optionPool.filter(m=>m!==q.correct)).slice(0,3);
+      return { prompt: q.prompt, correct: q.correct, category: 'fill-blank', options: shuffle([q.correct, ...distractors]) };
+    }
+    let sameCategory = uniqueByText(pool.filter(p => p.category===q.category), q.correct);
+    let distractorSource = sameCategory.length >= 3 ? sameCategory : uniqueByText(pool, q.correct);
     const distractors = shuffle(distractorSource).slice(0,3).map(p=>p.correct);
     return { prompt: q.prompt, correct: q.correct, category: q.category, options: shuffle([q.correct, ...distractors]) };
   });
@@ -605,7 +646,7 @@ async function startQuiz() {
   renderQuizQuestion();
 }
 
-const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence'};
+const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence', 'fill-blank':'Fill the blank'};
 
 function renderQuizQuestion() {
   const el = document.getElementById('quiz-body');
