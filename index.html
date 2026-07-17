@@ -613,7 +613,7 @@ async function buildQuestionPool() {
     markerPatterns.forEach(r => {
       const example = r.examples[0];
       if(example.startsWith(r.marker)) {
-        const blanked = '___' + example.slice(r.marker.length);
+        const blanked = '【 ? 】' + example.slice(r.marker.length);
         pool.push({prompt: blanked, correct: r.marker, category:'fill-blank', optionPool: allMarkers});
       }
     });
