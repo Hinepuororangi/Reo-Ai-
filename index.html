@@ -189,7 +189,14 @@
     </div>
     <!-- QUIZ SCREEN -->
     <div id="screen-quiz" style="display:none">
-      <div class="section-label">Quiz — verified kupu only</div>
+      <div class="section-label">Quiz</div>
+      <div class="lib-tabs" id="quiz-subject-tabs">
+        <div class="lib-tab active" data-subject="all" onclick="selectQuizSubject('all')">All</div>
+        <div class="lib-tab" data-subject="kupu" onclick="selectQuizSubject('kupu')">Kupu</div>
+        <div class="lib-tab" data-subject="pattern" onclick="selectQuizSubject('pattern')">Patterns</div>
+        <div class="lib-tab" data-subject="sentence" onclick="selectQuizSubject('sentence')">Sentences</div>
+        <div class="lib-tab" data-subject="fill-blank" onclick="selectQuizSubject('fill-blank')">Fill the Blank</div>
+      </div>
       <div id="quiz-body"><div class="loading">Loading...</div></div>
     </div>
   </main>
@@ -566,8 +573,14 @@ async function addKupu() {
 }
 
 // ── QUIZ ──
-let quizQuestions = [], quizIndex = 0, quizScore = 0;
+let quizQuestions = [], quizIndex = 0, quizScore = 0, quizSubject = 'all';
 function shuffle(arr) { return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
+
+function selectQuizSubject(subject) {
+  quizSubject = subject;
+  document.querySelectorAll('#quiz-subject-tabs .lib-tab').forEach(t => t.classList.toggle('active', t.dataset.subject===subject));
+  startQuiz();
+}
 
 async function buildQuestionPool() {
   const pool = []; // each: {prompt, correct, category}
@@ -580,18 +593,14 @@ async function buildQuestionPool() {
   const {data: rerenga} = await dbSelect('capability_rerenga', {eq:['verified','true']});
   (rerenga||[]).filter(r=>r.title && r.when_to_use).forEach(r => pool.push({prompt:r.title, correct:r.when_to_use, category:'pattern'}));
 
-  // My Patterns / promoted sentences — full sentence → context
-  // Excludes template placeholders (e.g. "Kaua e [verb]") and leftover
-  // diagnostic-testing entries from before this build — those got marked
-  // verified in the blanket pass but aren't real, usable quiz content.
-  const {data: patterns} = await dbSelect('capability_patterns', {eq:['verified','true']});
-  (patterns||[])
-    .filter(p => p.core_frame && p.context)
-    .filter(p => !/\[.*\]/.test(p.core_frame)) // no bracket placeholders
-    .filter(p => !/diagnostic/i.test(p.context)) // no leftover test labels
-    .forEach(p => pool.push({prompt:p.core_frame, correct:p.context, category:'sentence'}));
+  // My Patterns / promoted sentences deliberately excluded from the quiz.
+  // capability_patterns only has a "context" field (a situational tag, e.g.
+  // "Mornings with Puku") — never an actual translation/meaning. Using
+  // context as if it were meaning produced nonsensical quiz answers, since
+  // the two aren't the same thing. Real sentence questions now come only
+  // from Phrase Bank below, which has a genuine meaning field.
 
-  // Phrase Bank — phrase → meaning
+  // Phrase Bank — phrase → meaning (real translations, not situational tags)
   const {data: phrases} = await dbSelect('capability_phrasebank');
   (phrases||[]).filter(p=>p.phrase && p.meaning).forEach(p => pool.push({prompt:p.phrase, correct:p.meaning, category:'sentence'}));
 
@@ -637,8 +646,9 @@ function uniqueByText(items, excludeText) {
 
 async function startQuiz() {
   const el = document.getElementById('quiz-body');
-  const pool = await buildQuestionPool();
-  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Need at least 4 verified items with meanings/context to quiz — you have ${pool.length}. Add more across Kupu Bank, patterns, or Phrase Bank.</div>`; return; }
+  let pool = await buildQuestionPool();
+  if(quizSubject !== 'all') pool = pool.filter(p => p.category === quizSubject);
+  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Not enough verified content in this subject yet — you have ${pool.length}, need at least 4. Try "All" or add more content in Library.</div>`; return; }
   quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(q => {
     if(q.category === 'fill-blank') {
       const distractors = shuffle(q.optionPool.filter(m=>m!==q.correct)).slice(0,3);
@@ -670,14 +680,15 @@ function renderQuizQuestion() {
     <div class="kupu-context" style="margin-bottom:8px">Question ${quizIndex+1} of ${quizQuestions.length} · Score: ${quizScore} · <span class="tag tag-sage" style="padding:2px 7px">${QUIZ_CATEGORY_LABEL[q.category]}</span></div>
     <div class="frame-text" style="margin-bottom:16px">${q.prompt}</div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      ${q.options.map(opt => `<button class="quiz-option" onclick='answerQuiz(${JSON.stringify(opt)})'>${opt}</button>`).join('')}
+      ${q.options.map((opt,i) => `<button class="quiz-option" onclick="answerQuiz(${i})">${opt}</button>`).join('')}
     </div>
     <div id="quiz-feedback"></div>
   </div>`;
 }
 
-function answerQuiz(chosen) {
+function answerQuiz(optIndex) {
   const q = quizQuestions[quizIndex];
+  const chosen = q.options[optIndex];
   const correct = chosen === q.correct;
   if(correct) quizScore++;
   document.querySelectorAll('.quiz-option').forEach(btn => {
