@@ -2,724 +2,872 @@
 <html lang="mi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Reo AI Capability</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kupu AI · Kōrero o te Rā</title>
+<meta name="theme-color" content="#2f2a24" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <style>
-  :root {
-    --cacao: #4a3428; --cacao-light: #7a5c47;
-    --sage: #8a9a7e; --sage-dark: #5f6e54;
-    --sand: #f2ead9; --sand-light: #faf6ec; --white: #fff;
-    --amber: #c98a3e; --error: #b5533c; --border: #e8ddc8;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--sand-light); color: var(--cacao); font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
-  .display { font-family: 'Playfair Display', serif; }
-  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
-  header { padding: 20px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-  .brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
-  .brand sup { font-size: 11px; color: var(--sage-dark); font-weight: 700; margin-left: 2px; }
-  main { flex: 1; padding: 20px 20px 90px; }
-  .section-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--sage-dark); font-weight: 700; margin-bottom: 10px; }
-
-  /* Frame card (Practice screen) */
-  .frame-card { background: var(--white); border-radius: 20px; padding: 26px 22px; box-shadow: 0 1px 3px rgba(74,52,40,.06); border: 1px solid #ede3cd; margin-bottom: 20px; }
-  .frame-text { font-size: 24px; line-height: 1.35; font-weight: 500; margin-bottom: 6px; }
-  .frame-meaning { font-size: 14px; color: var(--cacao-light); margin-bottom: 16px; }
-  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 4px 9px; }
-  .tag-dim { background: #fbeee9; color: var(--error); }
-  .tag-sage { background: #eef2ea; color: var(--sage-dark); }
-  .check-teaka { display: inline-block; font-size: 12px; font-weight: 700; color: var(--sage-dark); text-decoration: none; border-bottom: 1px solid var(--sage); margin: 10px 0; }
-  .rep-row { display: flex; align-items: baseline; justify-content: space-between; margin: 14px 0; }
-  .rep-count { font-size: 14px; color: var(--cacao-light); } .rep-count strong { color: var(--cacao); font-size: 16px; }
-  .rep-dots { display: flex; gap: 6px; }
-  .rep-dot { width: 9px; height: 9px; border-radius: 50%; background: #e8ddc8; }
-  .rep-dot.filled { background: var(--sage-dark); }
-  .say-btn { width: 100%; background: var(--cacao); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; font-family: 'DM Sans'; cursor: pointer; }
-  .say-btn:active { transform: scale(.98); }
-  .note-panel { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-  .note-panel textarea { width: 100%; border: 1px solid #ddd0b3; border-radius: 10px; padding: 10px; font-family: 'DM Sans'; font-size: 13px; min-height: 54px; margin-bottom: 8px; }
-  .note-actions { display: flex; gap: 8px; }
-  .note-actions button { flex: 1; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; }
-  .save-note { background: var(--sage-dark); color: #fff; }
-  .skip-note { background: var(--sand); color: var(--cacao-light); border: 1px solid #ddd0b3 !important; }
-  .confirm { text-align: center; padding: 10px; background: #eef2ea; border-radius: 10px; color: var(--sage-dark); font-weight: 700; font-size: 13px; margin-top: 12px; }
-  .repeat-list { display: flex; flex-direction: column; gap: 8px; }
-  .repeat-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--sand-light); cursor: pointer; }
-  .repeat-row.done { background: #eef2ea; border-color: var(--sage); cursor: default; }
-  .repeat-check { width: 26px; height: 26px; border-radius: 50%; background: var(--white); border: 1px solid #ddd0b3; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--cacao-light); flex-shrink: 0; }
-  .repeat-row.done .repeat-check { background: var(--sage-dark); border-color: var(--sage-dark); color: #fff; }
-  .repeat-text { font-size: 18px; font-weight: 500; }
-  .note-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); font-size: 11px; font-weight: 700; color: var(--cacao-light); cursor: pointer; }
-  .quiz-option { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--white); font-family: 'DM Sans'; font-size: 15px; text-align: left; cursor: pointer; color: var(--cacao); }
-  .quiz-option:disabled { cursor: default; }
-  .quiz-option.correct { background: #eef2ea; border-color: var(--sage-dark); font-weight: 700; }
-  .quiz-option.wrong { background: #fbeee9; border-color: var(--error); }
-  .empty-state { color: var(--cacao-light); font-size: 14px; padding: 20px 0; }
-
-  /* Library cards */
-  .kupu-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
-  .kupu-word { font-weight: 700; font-size: 15px; } .kupu-meaning { font-size: 13px; color: var(--cacao-light); margin-top: 2px; }
-  .kupu-context { font-size: 12px; color: var(--cacao-light); margin-top: 4px; }
-  .edit-btn, .use-btn { padding: 6px 10px; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-weight: 700; color: var(--cacao-light); flex-shrink: 0; }
-  .use-btn { background: var(--sage-dark); color: #fff; border-color: var(--sage-dark); }
-
-  .add-form { display: none; flex-direction: column; gap: 8px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-  .add-form.visible { display: flex; }
-  .add-form input, .add-form select, .add-form textarea { padding: 10px; border-radius: 8px; border: 1px solid #ddd0b3; font-family: 'DM Sans'; font-size: 13px; }
-  .form-row { display: flex; gap: 8px; }
-  .form-row button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
-  .btn-save { background: var(--sage-dark); color: #fff; }
-  .btn-cancel { background: var(--sand); color: var(--cacao-light); }
-  .add-btn { width: 22px; height: 22px; border: 1px solid var(--cacao-light); background: transparent; color: var(--cacao-light); border-radius: 50%; font-size: 14px; cursor: pointer; }
-
-  .lib-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
-  .lib-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--white); font-size: 12px; font-weight: 700; color: var(--cacao-light); cursor: pointer; }
-  .lib-tab.active { background: var(--cacao); color: #fff; border-color: var(--cacao); }
-  .lib-panel { display: none; } .lib-panel.active { display: block; }
-
-  nav.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(249,245,241,.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); display: flex; }
-  .nav-item { flex: 1; text-align: center; padding: 14px 8px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: #b0a186; cursor: pointer; border-bottom: 2px solid transparent; }
-  .nav-item.active { color: var(--cacao); border-bottom-color: var(--sage-dark); }
-  .loading { color: var(--cacao-light); font-size: 13px; padding: 10px 0; }
+:root{
+  --cacao:#2f2a24; --cacao-2:#4a4138; --sand:#f4ede3; --sand-2:#e9dfd0; --white:#fffdf9;
+  --sage:#7d8f74; --sage-soft:#e3e9dd; --kokowai:#a4472f; --kokowai-soft:#f3e0d8;
+  --ink:#2f2a24; --ink-2:#5c5248; --ink-3:#8a7f73; --border:#ddd2c2;
+  --display:'Playfair Display',Georgia,serif; --body:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--sand);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+button,input,select,textarea{font-family:inherit;font-size:15px}
+.app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:88px}
+header{background:var(--cacao);color:var(--sand);padding:18px 18px 16px;position:sticky;top:0;z-index:5}
+header .brand{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+header h1{font-family:var(--display);font-size:22px;font-weight:700;margin-top:2px}
+header .sub{font-size:12px;opacity:.75;margin-top:2px}
+main{padding:16px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;font-weight:600}
+.h2{font-family:var(--display);font-size:19px;margin-bottom:4px}
+.muted{color:var(--ink-3);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--border);background:var(--white);color:var(--ink-2);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--cacao);border-color:var(--cacao);color:var(--sand)}
+.btn{border:none;border-radius:8px;padding:12px 14px;font-weight:600;cursor:pointer;width:100%}
+.btn.primary{background:var(--kokowai);color:#fff}
+.btn.dark{background:var(--cacao);color:var(--sand)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--ink-2)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+input,select,textarea{width:100%;border:1px solid var(--border);background:var(--white);border-radius:8px;padding:10px 12px;color:var(--ink);margin-bottom:8px}
+textarea{min-height:70px;resize:vertical}
+.reo{font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink)}
+.eng{font-size:13px;color:var(--ink-2)}
+.line{padding:12px 0;border-bottom:1px solid var(--sand-2);display:flex;gap:10px;align-items:flex-start}
+.line:last-child{border-bottom:none}
+.tick{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:2px solid var(--sage);background:var(--white);color:var(--sage);font-weight:700;cursor:pointer}
+.tick.on{background:var(--sage);color:#fff}
+.warn{background:var(--kokowai-soft);color:var(--kokowai);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.ok{background:var(--sage-soft);color:#4d5f45;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.kupu{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand-2)}
+.kupu:last-child{border-bottom:none}
+.kupu .w{font-weight:600}
+.tag{font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:var(--sand);color:var(--ink-3);border-radius:4px;padding:2px 6px;margin-right:4px}
+.x{background:none;border:none;color:var(--ink-3);font-size:18px;cursor:pointer;padding:4px 8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px}
+.stat b{font-family:var(--display);font-size:26px;display:block}
+.stat span{font-size:12px;color:var(--ink-3)}
+.bar{height:8px;background:var(--sand-2);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--sage)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;justify-content:center;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+nav .in{display:flex;max-width:560px;width:100%}
+nav button{flex:1;background:none;border:none;padding:10px 2px 12px;font-size:11px;color:var(--ink-3);cursor:pointer}
+nav button .i{display:block;font-size:19px;margin-bottom:2px}
+nav button.on{color:var(--kokowai);font-weight:600}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+.reps{display:flex;align-items:center;gap:8px}
+.reps button{width:38px;height:38px;border-radius:50%;border:none;background:var(--cacao);color:var(--sand);font-size:18px;cursor:pointer}
+.small{font-size:12px}
+.rec{border-color:var(--kokowai);color:var(--kokowai)}
+.rec.on{background:var(--kokowai);color:#fff}
+.clip{display:inline-flex;align-items:center;background:var(--sage-soft);border-radius:999px;overflow:hidden}
+.clip button{background:none;border:none;color:#4d5f45;font-size:13px;padding:6px 10px;cursor:pointer}
+.clip .del{padding:6px 8px 6px 0;color:var(--ink-3)}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.bubble{padding:10px 12px;border-radius:12px;margin:8px 0;max-width:88%}
+.bubble.me{background:var(--cacao);color:var(--sand);margin-left:auto;border-bottom-right-radius:4px}
+.bubble.them{background:var(--sand);border-bottom-left-radius:4px}
+.fix{background:var(--sage-soft);color:#4d5f45;border-radius:8px;padding:6px 8px;font-size:13px;margin-bottom:6px}
+.talkbar{position:sticky;bottom:76px;background:var(--sand);padding:8px 0}
+.talk{width:100%;border:none;border-radius:999px;padding:16px;font-size:17px;font-weight:600;background:var(--kokowai);color:#fff;cursor:pointer}
+.talk.on{background:var(--cacao);animation:pulse 1.2s ease-in-out infinite}
+.talk:disabled{opacity:.5}
+@keyframes pulse{50%{opacity:.75}}
+details summary{cursor:pointer;color:var(--ink-2);font-size:13px;margin-bottom:6px}
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand">Reo AI<sup>Capability</sup></div>
-  </header>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
 
-  <main>
-    <!-- PRACTICE SCREEN -->
-    <div id="screen-practice">
-      <div class="section-label">This week</div>
-      <div id="practice-frame"><div class="loading">Loading...</div></div>
+/* ---------- storage (localStorage, safe) ---------- */
+const KEY = 'kai_korero_v1';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch(e){ return null; } };
+const save = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){} };
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Pacific/Auckland' });
+
+/* ---------- audio storage (IndexedDB — recordings are too big for localStorage) ---------- */
+const idb = () => new Promise((res, rej) => {
+  const r = indexedDB.open('kai_audio', 1);
+  r.onupgradeneeded = () => r.result.createObjectStore('clips');
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const clipPut = async (id, blob) => { const d = await idb(); return new Promise((res, rej) => { const t = d.transaction('clips','readwrite'); t.objectStore('clips').put(blob, id); t.oncomplete = res; t.onerror = () => rej(t.error); }); };
+const clipGet = async (id) => { const d = await idb(); return new Promise((res, rej) => { const q = d.transaction('clips').objectStore('clips').get(id); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); };
+const clipDel = async (id) => { const d = await idb(); return new Promise(res => { const t = d.transaction('clips','readwrite'); t.objectStore('clips').delete(id); t.oncomplete = res; }); };
+const clipClear = async () => { const d = await idb(); return new Promise(res => { const t = d.transaction('clips','readwrite'); t.objectStore('clips').clear(); t.oncomplete = res; }); };
+const toB64 = (blob) => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+const fromB64 = async (s) => (await fetch(s)).blob();
+
+let currentAudio = null;
+async function playClip(id) {
+  const blob = await clipGet(id);
+  if (!blob) { alert('That recording isn’t on this device.'); return; }
+  if (currentAudio) currentAudio.pause();
+  currentAudio = new Audio(URL.createObjectURL(blob));
+  currentAudio.play();
+}
+
+/* Record button: tap to start, tap again to stop and save */
+function Recorder({ speaker, onSaved, label }) {
+  const [rec, setRec] = useState(null);
+  const [secs, setSecs] = useState(0);
+  useEffect(() => { if (!rec) return; const t = setInterval(() => setSecs(s => s + 1), 1000); return () => clearInterval(t); }, [rec]);
+  const start = async () => {
+    let who = speaker;
+    if (!who) { who = (prompt('Ko wai e kōrero ana? (Who is speaking?)') || '').trim(); if (!who) return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream); const chunks = [];
+      mr.ondataavailable = e => chunks.push(e.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        const id = uid(); await clipPut(id, blob);
+        onSaved({ id, speaker: who, date: today() });
+      };
+      mr.start(); setSecs(0); setRec(mr);
+    } catch (e) { alert('The microphone couldn’t be opened. Check the browser’s microphone permission.'); }
+  };
+  const stop = () => { rec.stop(); setRec(null); };
+  return rec
+    ? <button className="chip small rec on" onClick={stop}>■ Stop · {secs}s</button>
+    : <button className="chip small rec" onClick={start}>● {label || 'Hopu reo'}</button>;
+}
+
+function Clips({ audio, onDelete }) {
+  if (!audio || !audio.length) return null;
+  return (
+    <div className="chips" style={{marginTop:6}}>
+      {audio.map(a => (
+        <span key={a.id} className="clip">
+          <button onClick={() => playClip(a.id)}>▶ {a.speaker}</button>
+          {onDelete && <button className="del" onClick={() => onDelete(a.id)}>×</button>}
+        </span>
+      ))}
     </div>
-
-    <!-- LIBRARY SCREEN -->
-    <div id="screen-library" style="display:none">
-      <div class="lib-tabs">
-        <div class="lib-tab active" data-tab="rerenga" onclick="switchLibTab('rerenga')">Rerenga Kōrero</div>
-        <div class="lib-tab" data-tab="patai" onclick="switchLibTab('patai')">Ngā Pātai</div>
-        <div class="lib-tab" data-tab="whakautu" onclick="switchLibTab('whakautu')">Ngā Whakautu</div>
-        <div class="lib-tab" data-tab="progress" onclick="switchLibTab('progress')">Progress</div>
-        <div class="lib-tab" data-tab="phrases" onclick="switchLibTab('phrases')">Phrase Bank</div>
-        <div class="lib-tab" data-tab="patterns" onclick="switchLibTab('patterns')">My Patterns</div>
-        <div class="lib-tab" data-tab="kupu" onclick="switchLibTab('kupu')">Kupu Bank</div>
-      </div>
-
-      <div class="lib-panel active" id="lib-rerenga">
-        <div id="rerenga-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-patai">
-        <div id="patai-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-whakautu">
-        <div id="whakautu-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-progress">
-        <div id="progress-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-phrases">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div class="section-label" style="margin-bottom:0">Pre-verified — check, then use</div>
-          <button class="add-btn" onclick="toggleForm('phrase-form')">+</button>
-        </div>
-        <div class="add-form" id="phrase-form">
-          <input type="hidden" id="ph-edit-id" />
-          <input type="text" id="ph-phrase-i" placeholder="The full sentence" />
-          <input type="text" id="ph-meaning-i" placeholder="Meaning" />
-          <input type="text" id="ph-context-i" placeholder="Real-life context" />
-          <input type="text" id="ph-source-i" placeholder="Source (e.g. Te Aka, kaumātua name)" />
-          <div class="form-row">
-            <button class="btn-save" id="ph-save-btn" onclick="addPhrase()">Add phrase</button>
-            <button class="btn-cancel" onclick="closePhraseForm()">✕</button>
-          </div>
-        </div>
-        <div id="phrase-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-patterns">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div class="section-label" style="margin-bottom:0">Frames you're building</div>
-          <button class="add-btn" onclick="toggleForm('pattern-form')">+</button>
-        </div>
-        <div class="add-form" id="pattern-form">
-          <input type="hidden" id="pa-edit-id" />
-          <input type="text" id="pa-name-i" placeholder="Pattern name" />
-          <input type="text" id="pa-frame-i" placeholder="Core sentence frame" />
-          <input type="text" id="pa-context-i" placeholder="Real-life context" />
-          <div class="form-row">
-            <button class="btn-save" id="pa-save-btn" onclick="addPattern()">Add pattern</button>
-            <button class="btn-cancel" onclick="closePatternForm()">✕</button>
-          </div>
-        </div>
-        <div id="pattern-list"><div class="loading">Loading...</div></div>
-      </div>
-
-      <div class="lib-panel" id="lib-kupu">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div class="section-label" style="margin-bottom:0">Words I've used or remember</div>
-          <button class="add-btn" onclick="toggleForm('kupu-form')">+</button>
-        </div>
-        <div class="add-form" id="kupu-form">
-          <input type="hidden" id="ku-edit-id" />
-          <select id="ku-type-i">
-            <option value="Kupu">Kupu (word)</option>
-            <option value="Whakataukī">Whakataukī</option>
-            <option value="Karanga">Karanga</option>
-            <option value="Waiata">Waiata</option>
-          </select>
-          <input type="text" id="ku-word-i" placeholder="Kupu / whakataukī / karanga / waiata" />
-          <input type="text" id="ku-meaning-i" placeholder="Meaning" />
-          <input type="text" id="ku-context-i" placeholder="Where it came up (optional)" />
-          <div class="form-row">
-            <button class="btn-save" id="ku-save-btn" onclick="addKupu()">Add kupu</button>
-            <button class="btn-cancel" onclick="closeKupuForm()">✕</button>
-          </div>
-        </div>
-        <div id="kupu-list"><div class="loading">Loading...</div></div>
-      </div>
-    </div>
-    <!-- QUIZ SCREEN -->
-    <div id="screen-quiz" style="display:none">
-      <div class="section-label">Quiz</div>
-      <div class="lib-tabs" id="quiz-subject-tabs">
-        <div class="lib-tab active" data-subject="reo-only" onclick="selectQuizSubject('reo-only')">Reo Only</div>
-        <div class="lib-tab" data-subject="fill-blank" onclick="selectQuizSubject('fill-blank')">Fill the Blank</div>
-        <div class="lib-tab" data-subject="match-pattern" onclick="selectQuizSubject('match-pattern')">Match the Pattern</div>
-        <div class="lib-tab" data-subject="translation" onclick="selectQuizSubject('translation')">Translation (EN)</div>
-        <div class="lib-tab" data-subject="kupu" onclick="selectQuizSubject('kupu')">Kupu (EN)</div>
-      </div>
-      <div id="quiz-body"><div class="loading">Loading...</div></div>
-    </div>
-  </main>
-
-  <nav class="bottom-nav">
-    <div class="nav-item active" data-screen="practice" onclick="showScreen('practice')">Practice</div>
-    <div class="nav-item" data-screen="library" onclick="showScreen('library')">Library</div>
-    <div class="nav-item" data-screen="quiz" onclick="showScreen('quiz')">Quiz</div>
-  </nav>
-</div>
-
-<script>
-const SB_URL = 'https://kbfioznddfkwkoulebqg.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZmlvem5kZGZrd2tvdWxlYnFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMjE4MzgsImV4cCI6MjA5Nzg5NzgzOH0.6EbnbEiejmfoDCIjze9mlmr4QWX-u9_1T4nUP1enGWM';
-const H_GET = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
-const H_POST = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-
-async function dbSelect(table, opts={}) {
-  let url = SB_URL + '/rest/v1/' + table + '?select=*';
-  if(opts.order) url += '&order=' + opts.order + '.' + (opts.asc ? 'asc' : 'desc');
-  if(opts.limit) url += '&limit=' + opts.limit;
-  if(opts.eq) url += '&' + opts.eq[0] + '=eq.' + opts.eq[1];
-  try {
-    const r = await fetch(url, {method:'GET', headers: H_GET});
-    if(!r.ok) return {data:null, error:{message:'HTTP '+r.status}};
-    return {data: await r.json(), error:null};
-  } catch(e) { return {data:null, error:{message:e.message}}; }
-}
-async function dbInsert(table, body) {
-  try {
-    const arr = Array.isArray(body) ? body : [body];
-    const r = await fetch(SB_URL+'/rest/v1/'+table, {method:'POST', headers:H_POST, body:JSON.stringify(arr)});
-    if(!r.ok) return {data:null, error:{message:'HTTP '+r.status}};
-    const data = await r.json();
-    return {data: Array.isArray(data)?data:[data], error:null};
-  } catch(e) { return {data:null, error:{message:e.message}}; }
-}
-async function dbUpdate(table, body, col, val) {
-  try {
-    const r = await fetch(SB_URL+'/rest/v1/'+table+'?'+col+'=eq.'+val, {method:'PATCH', headers:H_POST, body:JSON.stringify(body)});
-    return {error: r.ok ? null : {message:'HTTP '+r.status}};
-  } catch(e) { return {error:{message:e.message}}; }
+  );
 }
 
-function toast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#4a3428;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;z-index:999;';
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2200);
-}
-function toggleForm(id) { document.getElementById(id).classList.toggle('visible'); }
+/* ---------- reference lists ---------- */
+const WA = [
+  { id:'whakatau', reo:'Te whakatau', eng:'Arrival & mihi' },
+  { id:'karakia', reo:'Karakia', eng:'Karakia & waiata time' },
+  { id:'kai', reo:'Kai', eng:'Kai time' },
+  { id:'horoi', reo:'Horoi', eng:'Washing & toileting' },
+  { id:'takaro', reo:'Tākaro', eng:'Play' },
+  { id:'waho', reo:'Ki waho', eng:'Outside' },
+  { id:'moe', reo:'Moe', eng:'Sleep & rest' },
+  { id:'poroporoaki', reo:'Poroporoaki', eng:'Going home' },
+];
+const KAUPAPA = ['Whānau','Kai','Tinana','Kākahu','Huarere','Taiao','Kararehe','Tae','Tau','Kare ā-roto','Mahi o te rā'];
+const MOMO = ['Kupu','Rerenga','Kīwaha','Whakataukī','Waiata','Karakia'];
+const TU = ['','Tūingoa','Tūmahi','Tūāhua'];
+const TAUMATA = [
+  { id:1, reo:'Taumata 1', eng:'Single kupu & commands' },
+  { id:2, reo:'Taumata 2', eng:'Short sentences' },
+  { id:3, reo:'Taumata 3', eng:'Pātai & whakautu' },
+];
 
-// ── NAV ──
-function showScreen(name) {
-  document.getElementById('screen-practice').style.display = name==='practice' ? 'block' : 'none';
-  document.getElementById('screen-library').style.display = name==='library' ? 'block' : 'none';
-  document.getElementById('screen-quiz').style.display = name==='quiz' ? 'block' : 'none';
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.screen===name));
-  if(name==='practice') renderPractice();
-  if(name==='library') renderLibraryAll();
-  if(name==='quiz') startQuiz();
-}
-function switchLibTab(tab) {
-  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
-  document.querySelectorAll('.lib-panel').forEach(p=>p.classList.toggle('active', p.id==='lib-'+tab));
-}
+/* Seed: common kōhanga phrases, flagged for checking by the kaiako / pou reo */
+const SEED_KUPU = [
+  ['Mōrena','Rerenga','Good morning','Mahi o te rā','whakatau'],
+  ['Kei te pēhea koe?','Rerenga','How are you?','Kare ā-roto','whakatau'],
+  ['Kei te pai ahau.','Rerenga','I am well.','Kare ā-roto','whakatau'],
+  ['Haere mai ki te kai.','Rerenga','Come and eat.','Kai','kai'],
+  ['Inumia tō wai.','Rerenga','Drink your water.','Kai','kai'],
+  ['Horoia ō ringaringa.','Rerenga','Wash your hands.','Tinana','horoi'],
+  ['E noho.','Rerenga','Sit down.','Mahi o te rā','takaro'],
+  ['Kia tūpato!','Kīwaha','Be careful!','Mahi o te rā','waho'],
+  ['Ka pai tō mahi.','Rerenga','Good work.','Mahi o te rā','takaro'],
+  ['Kei hea ō hū?','Rerenga','Where are your shoes?','Kākahu','waho'],
+  ['Tīkina tō pōtae.','Rerenga','Go get your hat.','Kākahu','waho'],
+  ['Ka kite anō.','Rerenga','See you again.','Whānau','poroporoaki'],
+  ['kai','Kupu','food','Kai',''],
+  ['wai','Kupu','water','Kai',''],
+  ['moe','Kupu','sleep','Mahi o te rā','moe'],
+  ['ua','Kupu','rain','Huarere','waho'],
+];
+const SEED_RERENGA = [
+  ['Kei te ___ ahau.','I am ___ (feeling/doing).'],
+  ['Kei hea tō ___?','Where is your ___?'],
+  ['Homai te ___.','Give me the ___.'],
+  ['He aha tēnei?','What is this?'],
+];
 
-// ── PRACTICE ──
-function getWeekStart() {
-  const d = new Date(); const day = d.getDay();
-  const diff = d.getDate() - day + (day===0?-6:1);
-  return new Date(d.setDate(diff)).toISOString().slice(0,10);
-}
-let activeFrame = null;
+const fresh = () => ({
+  settings: { kohanga:'', apiKey:'', model:'claude-sonnet-5-5', speaker:'' },
+  kupu: SEED_KUPU.map(([word,momo,meaning,kaupapa,wa]) => ({ id:uid(), word, momo, tu:'', meaning, kaupapa, wa, seed:true, created:today() })),
+  rerenga: SEED_RERENGA.map(([frame,eng]) => ({ id:uid(), frame, eng, reps:0, log:[] })),
+  korero: [],   // generated sets
+  mai: [],      // Kōrero mai turns: {date, scenario, said, reply}
+  uses: [],     // {date, text, wa}
+});
 
-async function renderPractice() {
-  const el = document.getElementById('practice-frame');
-  const {data} = await dbSelect('capability_patterns', {order:'created_at', asc:false, limit:1});
-  if(!data || !data.length) { el.innerHTML = '<div class="empty-state">No active pattern yet — add one from the Library, or use a Rerenga Kōrero example.</div>'; return; }
-  activeFrame = data[0];
-  const weekStart = getWeekStart();
-  const {data: logs} = await dbSelect('capability_repetitions', {eq:['week_start', weekStart]});
-  const repCount = logs ? logs.filter(l=>l.pattern_id===activeFrame.id).length : 0;
-  const target = 5;
-  const teAkaUrl = 'https://maoridictionary.co.nz/search?keywords=' + encodeURIComponent(activeFrame.pattern_name || activeFrame.core_frame || '');
-  const locked = activeFrame.status==='no_source_found';
-
-  if(repCount >= target) { renderBuildSentence(el); return; }
-
-  const rows = Array.from({length: target}).map((_, i) => {
-    const done = i < repCount;
-    return `<div class="repeat-row ${done?'done':''}">
-      <div ${locked||done?'':`onclick="quickRep()"`} style="flex:1;display:flex;align-items:center;gap:12px;cursor:${locked||done?'default':'pointer'}">
-        <span class="repeat-check">${done?'✓':i+1}</span>
-        <span class="repeat-text">${activeFrame.core_frame || activeFrame.pattern_name}</span>
-      </div>
-      ${!done && !locked ? `<button class="note-btn" onclick="openNoteFor(event)">+ note</button>` : ''}
-    </div>`;
-  }).join('');
-  el.innerHTML = `<div class="frame-card">
-    ${activeFrame.context ? `<div class="frame-meaning">${activeFrame.context}</div>` : ''}
-    ${activeFrame.status==='no_source_found' ? '<span class="tag tag-dim">⚠ No source found — needs a fluent speaker</span>' :
-      activeFrame.status==='unverified' ? `<div><span class="tag tag-dim">⚠ Unverified</span></div><a class="check-teaka" href="${teAkaUrl}" target="_blank">Check on Te Aka →</a>` :
-      '<span class="tag tag-sage">Verified</span>'}
-    <div class="repeat-list" style="margin-top:14px">${rows}</div>
-    <div style="text-align:center;font-size:12px;color:var(--cacao-light);margin-top:10px">${repCount} of ${target} said this week — tap a line once you've said it</div>
-    <div id="note-panel"></div>
-  </div>`;
-}
-
-// Once a pattern hits 5 reps, switch from repeating it to building a NEW
-// sentence with the same structure — the Increase Complexity step.
-async function renderBuildSentence(el) {
-  let template = activeFrame.pattern_template || null;
-  let words = [];
-  if(activeFrame.source_rerenga_id) {
-    const {data} = await dbSelect('capability_rerenga', {eq:['id', activeFrame.source_rerenga_id]});
-    if(data && data.length) { template = data[0].pattern_template; words = data[0].practice_words || []; }
-  }
-  el.innerHTML = `<div class="frame-card">
-    <div class="confirm" style="margin-top:0">5 of 5 said this week. Ka pai — that pattern's automated.</div>
-    <div class="section-label" style="margin-top:18px">Now build a new sentence</div>
-    ${template ? `<div class="kupu-context" style="font-weight:600;margin-bottom:10px">${template}</div>` : `<div class="kupu-meaning" style="margin-bottom:10px">Try a new sentence using the same idea as: ${activeFrame.core_frame}</div>`}
-    ${words.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${words.map(w=>`<button class="note-btn" onclick="insertWord('${w}')">${w}</button>`).join('')}</div>` : ''}
-    <textarea id="build-sentence-i" placeholder="Type your new sentence here" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd0b3;font-family:'DM Sans';font-size:15px;min-height:60px;margin-bottom:10px"></textarea>
-    <button class="say-btn" onclick="saveBuiltSentence()">Save & start practising this</button>
-  </div>`;
-}
-function insertWord(w) {
-  const t = document.getElementById('build-sentence-i');
-  t.value = t.value ? t.value + ' ' + w : w;
-  t.focus();
-}
-async function saveBuiltSentence() {
-  const text = document.getElementById('build-sentence-i').value.trim();
-  if(!text) return;
-  await dbInsert('capability_patterns', {
-    pattern_name: activeFrame.pattern_name, core_frame: text, context: activeFrame.context || '',
-    stage: 'recognise', verified: false, status: 'unverified', repetition_count: 0,
-    source_rerenga_id: activeFrame.source_rerenga_id || null
-  });
-  toast('New sentence saved — worth a quick check before you drill it');
-  renderPractice();
-}
-
-function quickRep() { saveRep(false); }
-
-function openNoteFor(evt) {
-  evt.stopPropagation();
-  handleSaidIt();
-}
-
-function handleSaidIt() {
-  document.getElementById('note-panel').innerHTML = `<div class="note-panel">
-    <textarea id="note-text" placeholder="What actually came out? (optional)"></textarea>
-    <div class="note-actions">
-      <button class="skip-note" onclick="saveRep(false)">Skip note</button>
-      <button class="save-note" onclick="saveRep(true)">Save</button>
-    </div>
-  </div>`;
-}
-
-async function saveRep(withNote) {
-  if(!activeFrame) return;
-  const noteText = withNote ? document.getElementById('note-text').value.trim() : '';
-  await dbInsert('capability_repetitions', {
-    pattern_id: activeFrame.id, logged_at: new Date().toISOString(),
-    method: withNote && noteText ? 'text_note' : 'tap', raw_text: noteText || null, week_start: getWeekStart()
-  });
-  await dbUpdate('capability_patterns', {
-    repetition_count: (activeFrame.repetition_count||0)+1,
-    ...(withNote && noteText ? {spontaneous_attempt: noteText} : {})
-  }, 'id', activeFrame.id);
-  if(withNote && noteText && activeFrame.source_rerenga_id) {
-    await appendRerengaExample(activeFrame.source_rerenga_id, noteText);
-  }
-  document.getElementById('note-panel').innerHTML = '<div class="confirm">Logged. Ka pai.</div>';
-  setTimeout(renderPractice, 1200);
-}
-
-async function appendRerengaExample(rerengaId, text) {
-  const {data} = await dbSelect('capability_rerenga', {eq:['id', rerengaId]});
-  if(!data || !data.length) return;
-  const current = data[0].examples || [];
-  if(current.includes(text)) return; // no duplicates
-  const updated = [...current, text];
-  await dbUpdate('capability_rerenga', {examples: updated}, 'id', rerengaId);
-  capRerenga = []; // force refresh next time Library loads
-}
-
-// ── LIBRARY ──
-function renderLibraryAll() { renderRerenga(); renderPhrases(); renderPatterns(); renderKupu(); renderProgress(); }
-
-let capRerenga = [];
-function rerengaHTML(r) {
-  const examples = (r.examples||[]).length
-    ? (r.examples||[]).map(ex => `<div class="kupu-context" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <span>${ex}</span><button class="use-btn" onclick='useRerenga(${JSON.stringify(r.id)}, ${JSON.stringify(ex)})'>Use this</button>
-      </div>`).join('')
-    : `<div class="kupu-context" style="font-style:italic">No examples yet — add one from real use.</div>`;
-  return `<div class="kupu-card" style="flex-direction:column;align-items:stretch">
-    <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
-      <div class="kupu-word">${r.order_index}. ${r.title}</div>
-      ${!r.verified ? '<span class="tag tag-dim">⚠</span>' : '<span class="tag tag-sage">✓</span>'}
-    </div>
-    ${r.when_to_use ? `<div class="kupu-meaning">${r.when_to_use}</div>` : ''}
-    ${r.pattern_template ? `<div class="kupu-context" style="font-weight:600">${r.pattern_template}</div>` : ''}
-    <div style="margin-top:6px">${examples}</div>
-  </div>`;
-}
-async function renderRerenga() {
-  const elR = document.getElementById('rerenga-list');
-  const elP = document.getElementById('patai-list');
-  const elW = document.getElementById('whakautu-list');
-  if(!capRerenga.length) { const {data} = await dbSelect('capability_rerenga', {order:'order_index', asc:true}); capRerenga = data || []; }
-  const rerenga = capRerenga.filter(r => (r.category||'rerenga')==='rerenga');
-  const patai = capRerenga.filter(r => r.category==='patai');
-  const whakautu = capRerenga.filter(r => r.category==='whakautu');
-  if(elR) elR.innerHTML = rerenga.length ? rerenga.map(rerengaHTML).join('') : '<div class="empty-state">No patterns loaded.</div>';
-  if(elP) elP.innerHTML = patai.length ? patai.map(rerengaHTML).join('') : '<div class="empty-state">No question patterns loaded.</div>';
-  if(elW) elW.innerHTML = whakautu.length ? whakautu.map(rerengaHTML).join('') : '<div class="empty-state">No response patterns loaded.</div>';
-}
-
-// ── PROGRESS DASHBOARD ──
-// 🔴 0 reps logged · 🟡 1-4 reps · 🟢 5+ reps (crosses the weekly automation target)
-function progressDot(reps) {
-  if(reps >= 5) return '🟢';
-  if(reps >= 1) return '🟡';
-  return '🔴';
-}
-async function renderProgress() {
-  const el = document.getElementById('progress-list');
-  if(!el) return;
-  const {data: patterns} = await dbSelect('capability_patterns', {order:'created_at', asc:false});
-  if(!patterns || !patterns.length) { el.innerHTML = '<div class="empty-state">No patterns practiced yet.</div>'; return; }
-  const grouped = {};
-  patterns.forEach(p => {
-    const key = p.pattern_name || 'Untitled';
-    if(!grouped[key]) grouped[key] = 0;
-    grouped[key] = Math.max(grouped[key], p.repetition_count || 0);
-  });
-  const rows = Object.entries(grouped).sort((a,b) => b[1]-a[1]).map(([name, reps]) =>
-    `<div class="kupu-card"><div style="flex:1"><div class="kupu-word">${progressDot(reps)} ${name}</div><div class="kupu-meaning">${reps} reps logged</div></div></div>`
-  ).join('');
-  el.innerHTML = `<div class="section-label">By pattern, most-practiced first</div>${rows}`;
-}
-async function useRerenga(id, exampleText) {
-  const r = capRerenga.find(x=>x.id===id);
-  const {data} = await dbInsert('capability_patterns', {
-    pattern_name: r.title, core_frame: exampleText, context: r.when_to_use || '',
-    stage: 'recognise', verified: r.verified, status: r.verified?'verified':'unverified', repetition_count: 0,
-    source_rerenga_id: r.id
-  });
-  if(data) toast(r.verified ? 'Added to practice' : 'Added — still unverified');
-}
-
-let capPhrases = [];
-function phraseHTML(p) {
-  return `<div class="kupu-card"><div style="flex:1">
-    <div class="kupu-word">${p.phrase}</div><div class="kupu-meaning">${p.meaning||''}</div>
-    ${p.context_tag?`<div class="kupu-context">${p.context_tag}</div>`:''}<div class="kupu-context" style="font-style:italic">Source: ${p.source}</div>
-  </div><div style="display:flex;flex-direction:column;gap:6px">
-    <button class="use-btn" onclick='usePhrase(${JSON.stringify(p.id)})'>Use this</button>
-    <button class="edit-btn" onclick='editPhrase(${JSON.stringify(p.id)})'>Edit</button>
-  </div></div>`;
-}
-async function renderPhrases() {
-  const el = document.getElementById('phrase-list');
-  if(!capPhrases.length) { const {data} = await dbSelect('capability_phrasebank', {order:'created_at', asc:false}); capPhrases = data || []; }
-  el.innerHTML = capPhrases.length ? capPhrases.map(phraseHTML).join('') : '<div class="empty-state">No phrases yet.</div>';
-}
-function editPhrase(id) {
-  const p = capPhrases.find(x=>x.id===id);
-  document.getElementById('ph-edit-id').value = id;
-  document.getElementById('ph-phrase-i').value = p.phrase||'';
-  document.getElementById('ph-meaning-i').value = p.meaning||'';
-  document.getElementById('ph-context-i').value = p.context_tag||'';
-  document.getElementById('ph-source-i').value = p.source||'';
-  document.getElementById('ph-save-btn').textContent = 'Save changes';
-  document.getElementById('phrase-form').classList.add('visible');
-}
-function closePhraseForm() { document.getElementById('ph-edit-id').value=''; document.getElementById('ph-save-btn').textContent='Add phrase'; toggleForm('phrase-form'); }
-async function addPhrase() {
-  const editId = document.getElementById('ph-edit-id').value;
-  const phrase = document.getElementById('ph-phrase-i').value.trim();
-  const meaning = document.getElementById('ph-meaning-i').value.trim();
-  const context_tag = document.getElementById('ph-context-i').value.trim();
-  const source = document.getElementById('ph-source-i').value.trim();
-  if(!phrase || !source) return;
-  if(editId) { await dbUpdate('capability_phrasebank', {phrase,meaning,context_tag,source}, 'id', editId); toast('Updated'); }
-  else { const {data} = await dbInsert('capability_phrasebank', {phrase,meaning,context_tag,source}); if(data) capPhrases.unshift(data[0]); toast('Added'); }
-  ['ph-phrase-i','ph-meaning-i','ph-context-i','ph-source-i'].forEach(id=>document.getElementById(id).value='');
-  closePhraseForm(); capPhrases=[]; renderPhrases();
-}
-async function usePhrase(id) {
-  const p = capPhrases.find(x=>x.id===id);
-  const {data} = await dbInsert('capability_patterns', {pattern_name:`From ${p.source}`, core_frame:p.phrase, context:p.context_tag||p.meaning||'', stage:'recognise', verified:true, status:'verified', repetition_count:0});
-  if(data) toast('Added to practice');
-}
-
-let capPatterns = [];
-function patternHTML(p) {
-  return `<div class="kupu-card"><div style="flex:1">
-    <div class="kupu-word">${p.pattern_name}</div><div class="kupu-meaning">${p.core_frame||''}</div>
-    ${p.context?`<div class="kupu-context">${p.context}</div>`:''}
-    <div class="kupu-context">${p.status==='verified'?'<span class="tag tag-sage">Verified</span>':'<span class="tag tag-dim">Unverified</span>'} · ${p.repetition_count||0} reps</div>
-  </div><button class="edit-btn" onclick='editPattern(${JSON.stringify(p.id)})'>Edit</button></div>`;
-}
-async function renderPatterns() {
-  const el = document.getElementById('pattern-list');
-  const {data} = await dbSelect('capability_patterns', {order:'created_at', asc:false});
-  capPatterns = data || [];
-  el.innerHTML = capPatterns.length ? capPatterns.map(patternHTML).join('') : '<div class="empty-state">No patterns yet.</div>';
-}
-function editPattern(id) {
-  const p = capPatterns.find(x=>x.id===id);
-  document.getElementById('pa-edit-id').value = id;
-  document.getElementById('pa-name-i').value = p.pattern_name||'';
-  document.getElementById('pa-frame-i').value = p.core_frame||'';
-  document.getElementById('pa-context-i').value = p.context||'';
-  document.getElementById('pa-save-btn').textContent = 'Save changes';
-  document.getElementById('pattern-form').classList.add('visible');
-}
-function closePatternForm() { document.getElementById('pa-edit-id').value=''; document.getElementById('pa-save-btn').textContent='Add pattern'; toggleForm('pattern-form'); }
-async function addPattern() {
-  const editId = document.getElementById('pa-edit-id').value;
-  const pattern_name = document.getElementById('pa-name-i').value.trim();
-  const core_frame = document.getElementById('pa-frame-i').value.trim();
-  const context = document.getElementById('pa-context-i').value.trim();
-  if(!pattern_name) return;
-  if(editId) await dbUpdate('capability_patterns', {pattern_name,core_frame,context}, 'id', editId);
-  else await dbInsert('capability_patterns', {pattern_name,core_frame,context,stage:'recognise',verified:true,status:'verified',repetition_count:0});
-  ['pa-name-i','pa-frame-i','pa-context-i'].forEach(id=>document.getElementById(id).value='');
-  closePatternForm(); renderPatterns();
-}
-
-let capKupu = [];
-const KUPU_TYPE_CLASS = {Kupu:'tag-sage', 'Whakataukī':'tag-sage', Karanga:'tag-sage', Waiata:'tag-sage'};
-function kupuHTML(k) {
-  return `<div class="kupu-card"><div style="flex:1">
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="kupu-word">${k.word}</div><span class="tag ${KUPU_TYPE_CLASS[k.type]||'tag-sage'}">${k.type||'Kupu'}</span>${k.verified?'<span class="tag tag-sage">✓ Verified</span>':'<span class="tag tag-dim">⚠ Unverified</span>'}</div>
-    <div class="kupu-meaning">${k.meaning||''}</div>${k.context?`<div class="kupu-context">${k.context}</div>`:''}
-  </div><button class="edit-btn" onclick='editKupu(${JSON.stringify(k.id)})'>Edit</button></div>`;
-}
-async function renderKupu() {
-  const el = document.getElementById('kupu-list');
-  if(!capKupu.length) { const {data} = await dbSelect('capability_kupu', {order:'created_at', asc:false}); capKupu = data || []; }
-  el.innerHTML = capKupu.length ? capKupu.map(kupuHTML).join('') : '<div class="empty-state">No kupu logged yet.</div>';
-}
-function editKupu(id) {
-  const k = capKupu.find(x=>x.id===id);
-  document.getElementById('ku-edit-id').value = id;
-  document.getElementById('ku-type-i').value = k.type||'Kupu';
-  document.getElementById('ku-word-i').value = k.word||'';
-  document.getElementById('ku-meaning-i').value = k.meaning||'';
-  document.getElementById('ku-context-i').value = k.context||'';
-  document.getElementById('ku-save-btn').textContent = 'Save changes';
-  document.getElementById('kupu-form').classList.add('visible');
-}
-function closeKupuForm() { document.getElementById('ku-edit-id').value=''; document.getElementById('ku-save-btn').textContent='Add kupu'; toggleForm('kupu-form'); }
-async function addKupu() {
-  const editId = document.getElementById('ku-edit-id').value;
-  const type = document.getElementById('ku-type-i').value;
-  const word = document.getElementById('ku-word-i').value.trim();
-  const meaning = document.getElementById('ku-meaning-i').value.trim();
-  const context = document.getElementById('ku-context-i').value.trim();
-  if(!word) return;
-  if(editId) await dbUpdate('capability_kupu', {type,word,meaning,context}, 'id', editId);
-  else { const {data} = await dbInsert('capability_kupu', {type,word,meaning,context,verified:true}); if(data) capKupu.unshift(data[0]); }
-  ['ku-word-i','ku-meaning-i','ku-context-i'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('ku-type-i').value='Kupu';
-  closeKupuForm(); capKupu=[]; renderKupu();
-}
-
-// ── QUIZ ──
-let quizQuestions = [], quizIndex = 0, quizScore = 0, quizSubject = 'reo-only';
-function shuffle(arr) { return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
-
-function selectQuizSubject(subject) {
-  quizSubject = subject;
-  document.querySelectorAll('#quiz-subject-tabs .lib-tab').forEach(t => t.classList.toggle('active', t.dataset.subject===subject));
-  startQuiz();
-}
-
-async function buildQuestionPool() {
-  const pool = []; // each: {prompt, correct, category}
-
-  // Kupu — word → meaning
-  const {data: kupu} = await dbSelect('capability_kupu', {eq:['verified','true']});
-  (kupu||[]).filter(k=>k.word && k.meaning).forEach(k => pool.push({prompt:k.word, correct:k.meaning, category:'kupu'}));
-
-  // Rerenga / Pātai / Whakautu — title → when_to_use
-  const {data: rerenga} = await dbSelect('capability_rerenga', {eq:['verified','true']});
-  (rerenga||[]).filter(r=>r.title && r.when_to_use).forEach(r => pool.push({prompt:r.title, correct:r.when_to_use, category:'pattern'}));
-
-  // My Patterns / promoted sentences deliberately excluded from the quiz.
-  // capability_patterns only has a "context" field (a situational tag, e.g.
-  // "Mornings with Puku") — never an actual translation/meaning. Using
-  // context as if it were meaning produced nonsensical quiz answers, since
-  // the two aren't the same thing. Real sentence questions now come only
-  // from Phrase Bank below, which has a genuine meaning field.
-
-  // Phrase Bank — phrase → meaning (real translations, not situational tags)
-  const {data: phrases} = await dbSelect('capability_phrasebank');
-  (phrases||[]).filter(p=>p.phrase && p.meaning).forEach(p => pool.push({prompt:p.phrase, correct:p.meaning, category:'sentence'}));
-
-  // Fill in the blank — blank out the tense/pattern marker from a Rerenga
-  // example, ask which marker fits. Safe: only uses markers already
-  // verified as real pattern openers, no invented content.
-  const markerPatterns = (rerenga||[]).filter(r => r.category==='rerenga' && r.marker && (r.examples||[]).length);
-  const allMarkers = [...new Set(markerPatterns.map(r=>r.marker))];
-  if(allMarkers.length >= 3) {
-    markerPatterns.forEach(r => {
-      const example = r.examples[0];
-      if(example.startsWith(r.marker)) {
-        const blanked = '【 ? 】' + example.slice(r.marker.length);
-        pool.push({prompt: blanked, correct: r.marker, category:'fill-blank', optionPool: allMarkers});
-      }
+/* ---------- Claude call (Kupu AI engine) ----------
+   If a key is saved on this device it's used directly; otherwise the call goes
+   through /api/reo on Vercel, where the key is kept safely. */
+async function callClaude(settings, system, messages, max_tokens) {
+  if (settings.apiKey) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'x-api-key': settings.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model: settings.model || 'claude-sonnet-5-5', max_tokens: max_tokens || 1500, system, messages }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data && data.error && data.error.message) || ('Error ' + res.status));
+    return (data.content || []).map(c => c.text || '').join('');
   }
+  const res = await fetch('/api/reo', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action:'chat', system, messages, max_tokens }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'The app server isn’t set up yet. Add a key in Tautuhi or set up Vercel.');
+  return data.text || '';
+}
+const parseJSON = (text) => { const m = text.match(/\{[\s\S]*\}/); if (!m) throw new Error('The reply wasn’t in the expected format. Try again.'); return JSON.parse(m[0]); };
+async function generateKorero({ settings, kupu, rerenga, wa, taumata, note }) {
+  const bank = kupu.slice(0,150).map(k => `${k.word} — ${k.meaning}${k.kaupapa?` [${k.kaupapa}]`:''}`).join('\n');
+  const frames = rerenga.map(r => `${r.frame} — ${r.eng}`).join('\n');
+  const waObj = WA.find(w => w.id === wa);
+  const level = TAUMATA.find(t => t.id === taumata);
+  const system = `You write daily te reo Māori kōrero for kaiako in a kōhanga reo or kura to use with tamariki.
+Rules:
+- Use correct macrons. Use plain, everyday kōhanga-level reo, not formal or literary reo.
+- Build from the kaiako's own kupu bank and sentence frames first. Only add a new kupu if it is common and essential, and list it in "kupu_hou".
+- Never invent whakataukī, waiata, karakia or tribal-specific content. Never attribute anything to an iwi.
+- Keep sentences short enough to say to a 2–5 year old.
+- Respond with JSON only, no other text, in this shape:
+{"kaupapa":"short title in te reo","rerenga":[{"reo":"","eng":""}],"patai":[{"reo":"","eng":"","whakautu_reo":"","whakautu_eng":""}],"mahi":{"reo":"","eng":""},"kupu_hou":[{"reo":"","eng":""}]}
+Give 4–5 rerenga, 2 patai and 1 short mahi (an activity idea).`;
+  const user = `Wā o te rā: ${waObj.reo} (${waObj.eng})
+Level: ${level.reo} — ${level.eng}
+${note ? `Kaiako note: ${note}\n` : ''}
+Kupu bank:
+${bank || '(empty)'}
 
-  // Match the Pattern — Māori example → Māori pattern title. No English
-  // anywhere. "Which structure is this sentence using?"
-  const rerengaByCategory = {};
-  (rerenga||[]).forEach(r => {
-    if(!r.title || !(r.examples||[]).length) return;
-    if(!rerengaByCategory[r.category]) rerengaByCategory[r.category] = [];
-    rerengaByCategory[r.category].push(r);
-  });
-  Object.values(rerengaByCategory).forEach(group => {
-    if(group.length < 3) return; // need enough titles in the group for real options
-    group.forEach(r => {
-      pool.push({ prompt: r.examples[0], correct: r.title, category: 'match-pattern', optionPool: group.map(g=>g.title) });
+Sentence frames being practised:
+${frames || '(none)'}`;
+
+  return parseJSON(await callClaude(settings, system, [{ role:'user', content:user }], 1500));
+}
+
+/* Offline: build a set from the kaiako's own bank (no AI) */
+function fromBank(kupu, wa) {
+  const pool = kupu.filter(k => k.momo !== 'Kupu' && (k.wa === wa || !k.wa));
+  const pick = [...pool].sort(() => Math.random() - .5).slice(0,5);
+  return {
+    kaupapa: (WA.find(w=>w.id===wa)||{}).reo,
+    rerenga: pick.map(k => ({ reo:k.word, eng:k.meaning })),
+    patai: [], mahi: null, kupu_hou: [], offline: true,
+  };
+}
+
+/* ---------- screens ---------- */
+function Korero({ db, setDb, go }) {
+  const [wa, setWa] = useState('kai');
+  const [taumata, setTaumata] = useState(1);
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const latest = db.korero.find(k => k.date === today() && k.wa === wa);
+
+  const run = async (offline) => {
+    setErr('');
+    setBusy(true);
+    try {
+      const out = offline ? fromBank(db.kupu, wa) : await generateKorero({ settings:db.settings, kupu:db.kupu, rerenga:db.rerenga, wa, taumata, note });
+      if (!out.rerenga || !out.rerenga.length) throw new Error(offline ? 'No rerenga in your bank for this time of day yet.' : 'Nothing came back. Try again.');
+      const item = { id:uid(), date:today(), wa, taumata, ...out, checked:!!offline, used:[] };
+      setDb(d => ({ ...d, korero:[item, ...d.korero.filter(k => !(k.date===today() && k.wa===wa))] }));
+    } catch(e) { setErr(e.message); }
+    setBusy(false);
+  };
+
+  const update = (patch) => setDb(d => ({ ...d, korero: d.korero.map(k => k.id === latest.id ? { ...k, ...patch } : k) }));
+
+  const toggleUse = (text) => {
+    const used = latest.used.includes(text) ? latest.used.filter(t => t !== text) : [...latest.used, text];
+    update({ used });
+    setDb(d => {
+      const exists = d.uses.find(u => u.date===today() && u.text===text);
+      return { ...d, uses: exists ? d.uses.filter(u => u !== exists) : [...d.uses, { date:today(), text, wa }] };
     });
+  };
+
+  const addToBank = (reo, eng) => {
+    if (db.kupu.some(k => k.word.trim().toLowerCase() === reo.trim().toLowerCase())) return;
+    setDb(d => ({ ...d, kupu:[{ id:uid(), word:reo, momo: reo.trim().includes(' ') ? 'Rerenga' : 'Kupu', tu:'', meaning:eng, kaupapa:'', wa, created:today() }, ...d.kupu] }));
+  };
+  const norm = (t) => (t||'').trim().toLowerCase();
+  const inBank = (reo) => db.kupu.some(k => norm(k.word) === norm(reo));
+  const entry = (reo) => db.kupu.find(k => norm(k.word) === norm(reo));
+  const attach = (reo, eng, clip) => setDb(d => {
+    const e = d.kupu.find(k => norm(k.word) === norm(reo));
+    if (e) return { ...d, kupu: d.kupu.map(k => k === e ? { ...k, audio:[...(k.audio||[]), clip] } : k) };
+    return { ...d, kupu:[{ id:uid(), word:reo, momo: reo.trim().includes(' ') ? 'Rerenga' : 'Kupu', tu:'', meaning:eng, kaupapa:'', wa, created:today(), audio:[clip] }, ...d.kupu] };
   });
+  const voice = (reo, eng) => (
+    <>
+      <Clips audio={(entry(reo)||{}).audio} />
+      <div className="actions">
+        <Recorder speaker={db.settings.speaker} onSaved={c => attach(reo, eng, c)} />
+        {!latest.offline && !inBank(reo) && <button className="chip small" onClick={()=>addToBank(reo,eng)}>+ Kupu Bank</button>}
+      </div>
+    </>
+  );
 
-  return dedupePool(pool);
-}
+  return (
+    <div>
+      <div className="card">
+        <div className="label">Wā o te rā</div>
+        <div className="chips" style={{marginBottom:12}}>
+          {WA.map(w => <button key={w.id} className={'chip'+(wa===w.id?' on':'')} onClick={()=>setWa(w.id)}>{w.reo}</button>)}
+        </div>
+        <div className="label">Taumata</div>
+        <div className="chips" style={{marginBottom:12}}>
+          {TAUMATA.map(t => <button key={t.id} className={'chip'+(taumata===t.id?' on':'')} onClick={()=>setTaumata(t.id)}>{t.reo}</button>)}
+        </div>
+        <details>
+          <summary>Add a note for today (optional)</summary>
+          <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="e.g. It’s raining, we’re doing kai hākari, focus on tae" />
+        </details>
+        <div className="row">
+          <button className="btn primary" disabled={busy} onClick={()=>run(false)}>{busy ? <><span className="spin"></span>Kei te mahi…</> : 'Make today’s kōrero'}</button>
+          <button className="btn ghost" disabled={busy} onClick={()=>run(true)} style={{flex:'0 0 38%'}}>From my bank</button>
+        </div>
+        {err && <div className="warn" style={{marginTop:10,marginBottom:0}}>{err}</div>}
+      </div>
 
-function dedupePool(pool) {
-  const seenPrompts = new Set();
-  return pool.filter(p => {
-    const key = p.prompt.trim().toLowerCase();
-    if(seenPrompts.has(key)) return false;
-    seenPrompts.add(key);
-    return true;
-  });
-}
+      {latest && (
+        <div className="card">
+          <div className="label">{(WA.find(w=>w.id===wa)||{}).eng} · {today()}</div>
+          <div className="h2">{latest.kaupapa}</div>
+          {!latest.checked
+            ? <div className="warn">Check this reo with your pou reo or kaiako before using it with tamariki. <button className="btn dark" style={{marginTop:8}} onClick={()=>update({checked:true})}>Kua tirohia — checked</button></div>
+            : <div className="ok">{latest.offline ? 'From your own kupu bank.' : 'Checked by kaiako.'} Tick each line when you use it.</div>}
 
-function uniqueByText(items, excludeText) {
-  const seen = new Set([excludeText.trim().toLowerCase()]);
-  const out = [];
-  for(const item of items) {
-    const key = item.correct.trim().toLowerCase();
-    if(seen.has(key)) continue;
-    seen.add(key);
-    out.push(item);
-  }
-  return out;
-}
+          <div className="label" style={{marginTop:6}}>Rerenga</div>
+          {latest.rerenga.map((r,i) => (
+            <div className="line" key={i}>
+              <button className={'tick'+(latest.used.includes(r.reo)?' on':'')} disabled={!latest.checked} onClick={()=>toggleUse(r.reo)}>✓</button>
+              <div style={{flex:1}}>
+                <div className="reo">{r.reo}</div>
+                <div className="eng">{r.eng}</div>
+                {voice(r.reo, r.eng)}
+              </div>
+            </div>
+          ))}
 
-async function startQuiz() {
-  const el = document.getElementById('quiz-body');
-  let pool = await buildQuestionPool();
-  if(quizSubject === 'reo-only') pool = pool.filter(p => p.category==='fill-blank' || p.category==='match-pattern');
-  else if(quizSubject === 'translation') pool = pool.filter(p => p.category==='kupu' || p.category==='pattern' || p.category==='sentence');
-  else pool = pool.filter(p => p.category === quizSubject);
-  if(pool.length < 4) { el.innerHTML = `<div class="empty-state">Not enough verified content in this subject yet — you have ${pool.length}, need at least 4. Try "Reo Only" or add more content in Library.</div>`; return; }
-  quizQuestions = shuffle(pool).slice(0, Math.min(10, pool.length)).map(q => {
-    if(q.category === 'fill-blank' || q.category === 'match-pattern') {
-      const distractors = shuffle(q.optionPool.filter(m=>m!==q.correct)).slice(0,3);
-      return { prompt: q.prompt, correct: q.correct, category: q.category, options: shuffle([q.correct, ...distractors]) };
-    }
-    let sameCategory = uniqueByText(pool.filter(p => p.category===q.category), q.correct);
-    let distractorSource = sameCategory.length >= 3 ? sameCategory : uniqueByText(pool, q.correct);
-    const distractors = shuffle(distractorSource).slice(0,3).map(p=>p.correct);
-    return { prompt: q.prompt, correct: q.correct, category: q.category, options: shuffle([q.correct, ...distractors]) };
-  });
-  quizIndex = 0; quizScore = 0;
-  renderQuizQuestion();
-}
+          {latest.patai && latest.patai.length > 0 && <>
+            <div className="label" style={{marginTop:14}}>Pātai me te whakautu</div>
+            {latest.patai.map((p,i) => (
+              <div className="line" key={i}>
+                <button className={'tick'+(latest.used.includes(p.reo)?' on':'')} disabled={!latest.checked} onClick={()=>toggleUse(p.reo)}>✓</button>
+                <div style={{flex:1}}>
+                  <div className="reo">{p.reo}</div>
+                  <div className="eng">{p.eng}</div>
+                  {voice(p.reo, p.eng)}
+                  <div style={{marginTop:6}} className="reo small">↳ {p.whakautu_reo}</div>
+                  <div className="eng">{p.whakautu_eng}</div>
+                  {voice(p.whakautu_reo, p.whakautu_eng)}
+                </div>
+              </div>
+            ))}
+          </>}
 
-const QUIZ_CATEGORY_LABEL = {kupu:'Kupu', pattern:'Pattern', sentence:'Sentence', 'fill-blank':'Fill the blank', 'match-pattern':'Match the pattern'};
+          {latest.mahi && latest.mahi.reo && <>
+            <div className="label" style={{marginTop:14}}>Mahi</div>
+            <div className="reo" style={{fontSize:16}}>{latest.mahi.reo}</div>
+            <div className="eng">{latest.mahi.eng}</div>
+          </>}
 
-function renderQuizQuestion() {
-  const el = document.getElementById('quiz-body');
-  if(quizIndex >= quizQuestions.length) {
-    el.innerHTML = `<div class="frame-card" style="text-align:center">
-      <div class="frame-text">${quizScore} / ${quizQuestions.length}</div>
-      <div class="frame-meaning">correct</div>
-      <button class="say-btn" style="margin-top:16px" onclick="startQuiz()">Quiz again</button>
-    </div>`;
-    return;
-  }
-  const q = quizQuestions[quizIndex];
-  el.innerHTML = `<div class="frame-card">
-    <div class="kupu-context" style="margin-bottom:8px">Question ${quizIndex+1} of ${quizQuestions.length} · Score: ${quizScore} · <span class="tag tag-sage" style="padding:2px 7px">${QUIZ_CATEGORY_LABEL[q.category]}</span></div>
-    <div class="frame-text" style="margin-bottom:16px">${q.prompt}</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${q.options.map((opt,i) => `<button class="quiz-option" onclick="answerQuiz(${i})">${opt}</button>`).join('')}
+          {latest.kupu_hou && latest.kupu_hou.length > 0 && <>
+            <div className="label" style={{marginTop:14}}>Kupu hou</div>
+            {latest.kupu_hou.map((k,i) => (
+              <div className="kupu" key={i}>
+                <div><div className="w">{k.reo}</div><div className="muted">{k.eng}</div></div>
+                {!inBank(k.reo) ? <button className="chip small" onClick={()=>addToBank(k.reo,k.eng)}>+ Bank</button> : <span className="muted small">in bank</span>}
+              </div>
+            ))}
+          </>}
+        </div>
+      )}
+
+      {!latest && db.korero.length > 0 && (
+        <div className="card">
+          <div className="label">Earlier kōrero</div>
+          {db.korero.slice(0,5).map(k => (
+            <div className="kupu" key={k.id}>
+              <div><div className="w">{k.kaupapa}</div><div className="muted small">{k.date} · {(WA.find(w=>w.id===k.wa)||{}).reo}</div></div>
+              <span className="muted small">{k.used.length}/{k.rerenga.length + (k.patai||[]).length} used</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-    <div id="quiz-feedback"></div>
-  </div>`;
+  );
 }
 
-function answerQuiz(optIndex) {
-  const q = quizQuestions[quizIndex];
-  const chosen = q.options[optIndex];
-  const correct = chosen === q.correct;
-  if(correct) quizScore++;
-  document.querySelectorAll('.quiz-option').forEach(btn => {
-    btn.disabled = true;
-    if(btn.textContent === q.correct) btn.classList.add('correct');
-    else if(btn.textContent === chosen) btn.classList.add('wrong');
+/* ---------- Kōrero mai: speaking partner ---------- */
+const b64 = (blob) => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.readAsDataURL(blob); });
+const ttsCache = {};
+async function speak(text) {
+  if (!ttsCache[text]) {
+    const r = await fetch('/api/reo', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action:'tts', text }) });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Voice isn’t set up yet.'); }
+    ttsCache[text] = URL.createObjectURL(await r.blob());
+  }
+  if (currentAudio) currentAudio.pause();
+  currentAudio = new Audio(ttsCache[text]);
+  await currentAudio.play();
+}
+
+function KoreroMai({ db, setDb }) {
+  const [scenario, setScenario] = useState('whakatau');
+  const [taumata, setTaumata] = useState(1);
+  const [chat, setChat] = useState([]);           // {role:'me'|'app', text, eng, fix, fix_eng}
+  const [rec, setRec] = useState(null);
+  const [busy, setBusy] = useState('');
+  const [err, setErr] = useState('');
+  const [typed, setTyped] = useState('');
+  const [showEng, setShowEng] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const endRef = React.useRef(null);
+  useEffect(() => { endRef.current && endRef.current.scrollIntoView({ behavior:'smooth', block:'end' }); }, [chat, busy]);
+
+  const scen = WA.find(w => w.id === scenario) || { reo:'Kōrero noa', eng:'Free conversation' };
+  const level = TAUMATA.find(t => t.id === taumata);
+  const system = `You are a warm, patient te reo Māori speaking partner for a kaiako at a kōhanga reo or kura who wants to get faster and more natural at speaking.
+Setting: ${scen.reo} (${scen.eng}) — talk as if you are another kaiako or a whānau member in that moment of the day.
+Level: ${level.reo} — ${level.eng}. Keep each reply to 1–2 short sentences of everyday spoken reo, and end with something that invites them to keep talking (often a simple pātai).
+Use correct macrons. Prefer kupu and sentence frames from their bank:
+${db.kupu.slice(0,120).map(k => k.word).join(' | ')}
+Frames they are practising: ${db.rerenga.map(r => r.frame).join(' | ') || 'none'}
+If they speak English, reply in te reo and show them how to say what they meant in "whakatika".
+If their reo has a clear error, put the natural version in "whakatika". If it was fine, leave "whakatika" empty — don't correct style or mita differences.
+Never invent whakataukī, waiata or karakia, and never attribute anything to an iwi.
+Respond with JSON only: {"reo":"","eng":"","whakatika":"","whakatika_eng":""}`;
+
+  const toMessages = (list) => {
+    const m = list.map(c => c.role === 'me' ? { role:'user', content:c.text } : { role:'assistant', content: JSON.stringify({ reo:c.text, eng:c.eng, whakatika:c.fix||'', whakatika_eng:c.fix_eng||'' }) });
+    if (!m.length || m[0].role !== 'user') m.unshift({ role:'user', content:'(Tīmatahia te kōrero — start the conversation.)' });
+    return m;
+  };
+
+  const reply = async (list) => {
+    setBusy('Kei te whakaaro…');
+    const out = parseJSON(await callClaude(db.settings, system, toMessages(list), 400));
+    const app = { role:'app', text: out.reo, eng: out.eng, fix: out.whakatika, fix_eng: out.whakatika_eng };
+    setChat([...list, app]);
+    setBusy('');
+    if (voiceOn) speak(out.reo).catch(e => setErr(e.message));
+    return app;
+  };
+
+  const logTurn = (said, app) => setDb(d => {
+    const low = said.toLowerCase();
+    const rerenga = d.rerenga.map(r => {
+      const start = r.frame.split('___')[0].trim().replace(/[.?!]$/,'').toLowerCase();
+      return start.length > 2 && low.includes(start) ? { ...r, reps: r.reps + 1, log:[...r.log, today()] } : r;
+    });
+    return { ...d, rerenga, mai:[...d.mai, { date:today(), scenario, said, reply: app.text }] };
   });
-  document.getElementById('quiz-feedback').innerHTML = `<div class="confirm" style="background:${correct?'#eef2ea':'#fbeee9'};color:${correct?'var(--sage-dark)':'var(--error)'}">${correct?'Tika! Correct.':'Not quite — '+q.correct}</div>
-    <button class="say-btn" style="margin-top:10px" onclick="nextQuizQuestion()">Next</button>`;
-}
-function nextQuizQuestion() { quizIndex++; renderQuizQuestion(); }
 
-// ── INIT ──
-renderPractice();
+  const send = async (said) => {
+    if (!said.trim()) return;
+    setErr('');
+    const list = [...chat, { role:'me', text: said.trim() }];
+    setChat(list);
+    try { const app = await reply(list); logTurn(said.trim(), app); }
+    catch(e) { setErr(e.message); setBusy(''); }
+  };
+
+  const start = async () => {
+    setErr(''); setChat([]);
+    try { await reply([]); } catch(e) { setErr(e.message); setBusy(''); }
+  };
+
+  const talk = async () => {
+    if (rec) { rec.stop(); setRec(null); return; }
+    setErr('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+      const mr = new MediaRecorder(stream); const chunks = [];
+      mr.ondataavailable = e => chunks.push(e.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        setBusy('Kei te whakarongo…');
+        try {
+          const r = await fetch('/api/reo', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action:'stt', audio: await b64(blob), mime: blob.type }) });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(data.error || 'Listening isn’t set up yet.');
+          setBusy('');
+          if (!data.text) { setErr('I didn’t catch that — try again, a bit closer to the phone.'); return; }
+          await send(data.text);
+        } catch(e) { setErr(e.message); setBusy(''); }
+      };
+      if (currentAudio) currentAudio.pause();
+      mr.start(); setRec(mr);
+    } catch(e) { setErr('The microphone couldn’t be opened. Check the browser’s microphone permission.'); }
+  };
+
+  const turnsToday = db.mai.filter(m => m.date === today()).length;
+
+  return (
+    <div>
+      <div className="card">
+        <div className="h2">Kōrero mai</div>
+        <div className="muted" style={{marginBottom:10}}>Speak te reo, and it answers you by voice. Practice for kaiako. Reo hangarau: a fluent speaker should check anything before it's used with tamariki.</div>
+        <div className="label">Wāhi</div>
+        <div className="chips" style={{marginBottom:10}}>
+          {[...WA, { id:'noa', reo:'Kōrero noa' }].map(w => <button key={w.id} className={'chip'+(scenario===w.id?' on':'')} onClick={()=>{ setScenario(w.id); setChat([]); }}>{w.reo}</button>)}
+        </div>
+        <div className="chips" style={{marginBottom:12}}>
+          {TAUMATA.map(t => <button key={t.id} className={'chip'+(taumata===t.id?' on':'')} onClick={()=>setTaumata(t.id)}>{t.reo}</button>)}
+        </div>
+        <div className="row">
+          <button className="btn dark" onClick={start} disabled={!!busy || !!rec}>{chat.length ? 'Tīmata anō' : 'Tīmata'}</button>
+          <button className="btn ghost" style={{flex:'0 0 auto',width:'auto'}} onClick={()=>setShowEng(!showEng)}>{showEng ? 'Hide English' : 'English'}</button>
+          <button className="btn ghost" style={{flex:'0 0 auto',width:'auto'}} onClick={()=>setVoiceOn(!voiceOn)}>{voiceOn ? '🔊' : '🔇'}</button>
+        </div>
+        {turnsToday > 0 && <div className="muted small" style={{marginTop:8}}>{turnsToday} {turnsToday===1?'turn':'turns'} today</div>}
+      </div>
+
+      {chat.length > 0 && (
+        <div className="card">
+          {chat.map((c,i) => c.role === 'me' ? (
+            <div key={i} className="bubble me">{c.text}</div>
+          ) : (
+            <div key={i} className="bubble them">
+              {c.fix && <div className="fix">Pai ake: <b>{c.fix}</b>{showEng && c.fix_eng ? <div className="eng">{c.fix_eng}</div> : null}</div>}
+              <div className="reo" style={{fontSize:17}}>{c.text}</div>
+              {showEng && <div className="eng">{c.eng}</div>}
+              <button className="chip small" style={{marginTop:6}} onClick={()=>speak(c.text).catch(e=>setErr(e.message))}>▶ Whakarongo anō</button>
+            </div>
+          ))}
+          {busy && <div className="muted small" style={{padding:'6px 0'}}>{busy}</div>}
+          <div ref={endRef}></div>
+        </div>
+      )}
+
+      {err && <div className="warn">{err}</div>}
+
+      {chat.length > 0 && (
+        <div className="talkbar">
+          <button className={'talk'+(rec?' on':'')} onClick={talk} disabled={!!busy}>{rec ? '■ Kua mutu' : '● Kōrero'}</button>
+          <div className="row" style={{marginTop:8}}>
+            <input value={typed} onChange={e=>setTyped(e.target.value)} placeholder="…or type" onKeyDown={e=>{ if (e.key==='Enter') { send(typed); setTyped(''); } }} style={{marginBottom:0}} />
+            <button className="btn ghost" style={{flex:'0 0 auto',width:'auto'}} disabled={!!busy} onClick={()=>{ send(typed); setTyped(''); }}>Tuku</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Bank({ db, setDb }) {
+  const blank = { word:'', momo:'Kupu', tu:'', meaning:'', kaupapa:'', wa:'' };
+  const [f, setF] = useState(blank);
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [filter, setFilter] = useState('all');
+  const [q, setQ] = useState('');
+
+  const saveKupu = () => {
+    if (!f.word.trim()) return;
+    if (editId) setDb(d => ({ ...d, kupu: d.kupu.map(k => k.id===editId ? { ...k, ...f, seed:false } : k) }));
+    else setDb(d => ({ ...d, kupu: [{ id:uid(), ...f, created:today() }, ...d.kupu] }));
+    setF(blank); setEditId(null); setOpen(false);
+  };
+  const edit = (k) => { setF({ word:k.word, momo:k.momo, tu:k.tu||'', meaning:k.meaning, kaupapa:k.kaupapa||'', wa:k.wa||'' }); setEditId(k.id); setOpen(true); window.scrollTo(0,0); };
+  const del = (id) => {
+    if (!confirm('Remove this from the Kupu Bank?')) return;
+    const k = db.kupu.find(x => x.id === id); (k && k.audio || []).forEach(a => clipDel(a.id));
+    setDb(d => ({ ...d, kupu: d.kupu.filter(k => k.id !== id) }));
+  };
+  const addClip = (kid, c) => setDb(d => ({ ...d, kupu: d.kupu.map(k => k.id===kid ? { ...k, audio:[...(k.audio||[]), c] } : k) }));
+  const delClip = (kid, cid) => { if (!confirm('Delete this recording?')) return; clipDel(cid); setDb(d => ({ ...d, kupu: d.kupu.map(k => k.id===kid ? { ...k, audio:(k.audio||[]).filter(a => a.id!==cid) } : k) })); };
+
+  const list = db.kupu.filter(k =>
+    (filter==='all' || k.momo===filter || k.kaupapa===filter ||
+     (filter==='rec' && (k.audio||[]).length) || (filter==='norec' && !(k.audio||[]).length)) &&
+    (!q || (k.word+' '+k.meaning).toLowerCase().includes(q.toLowerCase())));
+
+  return (
+    <div>
+      <div className="card">
+        <div className="row" style={{alignItems:'center'}}>
+          <div><div className="h2">Kupu Bank</div><div className="muted">{db.kupu.length} kupu, rerenga & kīwaha</div></div>
+          <button className="btn dark" style={{flex:'0 0 auto',width:'auto'}} onClick={()=>{ setOpen(!open); setEditId(null); setF(blank); }}>{open ? 'Close' : '+ Add'}</button>
+        </div>
+        {open && (
+          <div style={{marginTop:12}}>
+            <input value={f.word} onChange={e=>setF({...f,word:e.target.value})} placeholder="Kupu / rerenga / kīwaha" />
+            <input value={f.meaning} onChange={e=>setF({...f,meaning:e.target.value})} placeholder="Meaning" />
+            <div className="row">
+              <select value={f.momo} onChange={e=>setF({...f,momo:e.target.value})}>{MOMO.map(m=><option key={m}>{m}</option>)}</select>
+              <select value={f.tu} onChange={e=>setF({...f,tu:e.target.value})}>{TU.map(t=><option key={t} value={t}>{t||'Tū (optional)'}</option>)}</select>
+            </div>
+            <div className="row">
+              <select value={f.kaupapa} onChange={e=>setF({...f,kaupapa:e.target.value})}><option value="">Kaupapa</option>{KAUPAPA.map(k=><option key={k}>{k}</option>)}</select>
+              <select value={f.wa} onChange={e=>setF({...f,wa:e.target.value})}><option value="">Any time</option>{WA.map(w=><option key={w.id} value={w.id}>{w.reo}</option>)}</select>
+            </div>
+            <button className="btn primary" onClick={saveKupu}>{editId ? 'Save changes' : 'Add to bank'}</button>
+          </div>
+        )}
+      </div>
+
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search" />
+      <div className="chips" style={{marginBottom:12}}>
+        {['all',...MOMO.filter(m=>db.kupu.some(k=>k.momo===m)),...KAUPAPA.filter(k=>db.kupu.some(x=>x.kaupapa===k))].map(c =>
+          <button key={c} className={'chip'+(filter===c?' on':'')} onClick={()=>setFilter(c)}>{c==='all'?'Katoa':c}</button>)}
+        <button className={'chip'+(filter==='rec'?' on':'')} onClick={()=>setFilter('rec')}>▶ Recorded</button>
+        <button className={'chip'+(filter==='norec'?' on':'')} onClick={()=>setFilter('norec')}>Needs a voice</button>
+      </div>
+
+      {db.kupu.some(k=>k.seed) && <div className="warn">Entries tagged <b>tauira</b> are starter examples. Check them with your pou reo, then edit or delete. Editing removes the tag.</div>}
+
+      <div className="card">
+        {list.length===0 && <div className="muted">Nothing here yet.</div>}
+        {list.map(k => (
+          <div className="kupu" key={k.id}>
+            <div style={{flex:1}}>
+              <div onClick={()=>edit(k)}>
+              <div className="w">{k.word}</div>
+              <div className="muted">{k.meaning}</div>
+              </div>
+              <div style={{marginTop:4}}>
+                <span className="tag">{k.momo}</span>
+                {k.tu && <span className="tag">{k.tu}</span>}
+                {k.kaupapa && <span className="tag">{k.kaupapa}</span>}
+                {k.wa && (WA.find(w=>w.id===k.wa)||{}).reo !== k.kaupapa && <span className="tag">{(WA.find(w=>w.id===k.wa)||{}).reo}</span>}
+                {k.seed && <span className="tag" style={{background:'var(--kokowai-soft)',color:'var(--kokowai)'}}>tauira</span>}
+              </div>
+              <Clips audio={k.audio} onDelete={id => delClip(k.id, id)} />
+              <div className="actions" onClick={e=>e.stopPropagation()}>
+                <Recorder speaker={db.settings.speaker} onSaved={c => addClip(k.id, c)} />
+              </div>
+            </div>
+            <button className="x" onClick={()=>del(k.id)}>×</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Rerenga({ db, setDb }) {
+  const [frame, setFrame] = useState('');
+  const [eng, setEng] = useState('');
+  const add = () => { if (!frame.trim()) return; setDb(d => ({ ...d, rerenga:[...d.rerenga, { id:uid(), frame, eng, reps:0, log:[] }] })); setFrame(''); setEng(''); };
+  const rep = (id, n) => setDb(d => ({ ...d, rerenga: d.rerenga.map(r => r.id!==id ? r : { ...r, reps: Math.max(0, r.reps+n), log: n>0 ? [...r.log, today()] : r.log.slice(0,-1) }) }));
+  const del = (id) => { if (confirm('Remove this frame?')) setDb(d => ({ ...d, rerenga: d.rerenga.filter(r => r.id!==id) })); };
+  const stage = (n) => n>=50 ? 'Automatic' : n>=20 ? 'Settling' : n>=5 ? 'Repeating' : 'New';
+
+  return (
+    <div>
+      <div className="card">
+        <div className="h2">Rerenga practice</div>
+        <div className="muted" style={{marginBottom:10}}>Sentence frames kaiako are building speed on. Tap + each time you say one with tamariki. The Kōrero o te Rā engine builds from these.</div>
+        <input value={frame} onChange={e=>setFrame(e.target.value)} placeholder="e.g. Kei te ___ ahau." />
+        <input value={eng} onChange={e=>setEng(e.target.value)} placeholder="Meaning" />
+        <button className="btn dark" onClick={add}>Add frame</button>
+      </div>
+      {db.rerenga.map(r => (
+        <div className="card" key={r.id}>
+          <div className="row" style={{alignItems:'flex-start'}}>
+            <div style={{flex:1}}>
+              <div className="reo">{r.frame}</div>
+              <div className="eng">{r.eng}</div>
+              <div className="muted small" style={{marginTop:6}}>{stage(r.reps)} · {r.reps} times · {new Set(r.log).size} days</div>
+              <div className="bar"><i style={{width: Math.min(100, r.reps*2)+'%'}}></i></div>
+            </div>
+            <div className="reps" style={{flex:'0 0 auto'}}>
+              <button onClick={()=>rep(r.id,-1)} style={{background:'var(--sand-2)',color:'var(--ink)'}}>−</button>
+              <button onClick={()=>rep(r.id,1)}>+</button>
+            </div>
+          </div>
+          <button className="x small" onClick={()=>del(r.id)} style={{marginTop:6}}>Remove</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Taunaki({ db }) {
+  const days = new Set([...db.uses.map(u=>u.date), ...db.rerenga.flatMap(r=>r.log), ...(db.mai||[]).map(m=>m.date)]);
+  const reps = db.rerenga.reduce((a,r)=>a+r.reps,0);
+  const byWa = WA.map(w => ({ ...w, n: db.uses.filter(u=>u.wa===w.id).length }));
+  const max = Math.max(1, ...byWa.map(w=>w.n));
+  const kupuAdded = db.kupu.filter(k=>!k.seed).length;
+  const clips = db.kupu.flatMap(k => (k.audio||[]).map(a => ({ ...a, word:k.word })));
+  const voiced = db.kupu.filter(k => (k.audio||[]).length).length;
+  const speakers = [...new Set(clips.map(c => c.speaker))];
+
+  const csv = () => {
+    const rows = [['date','type','text','wa']];
+    db.uses.forEach(u => rows.push([u.date,'korero used',u.text,(WA.find(w=>w.id===u.wa)||{}).reo]));
+    db.rerenga.forEach(r => r.log.forEach(d => rows.push([d,'rerenga rep',r.frame,''])));
+    db.kupu.filter(k=>!k.seed).forEach(k => rows.push([k.created||'','kupu added',k.word,'']));
+    clips.forEach(c => rows.push([c.date,'recording ('+c.speaker+')',c.word,'']));
+    (db.mai||[]).forEach(m => rows.push([m.date,'korero mai turn',m.said,(WA.find(w=>w.id===m.scenario)||{reo:'Kōrero noa'}).reo]));
+    const body = rows.map(r => r.map(c => '"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([body], { type:'text/csv' }));
+    a.download = 'korero-evidence-'+today()+'.csv'; a.click();
+  };
+
+  return (
+    <div>
+      <div className="card">
+        <div className="h2">Taunakitanga</div>
+        <div className="muted">Evidence of reo being used every day{db.settings.kohanga ? ' at '+db.settings.kohanga : ''}. Export it for reporting.</div>
+      </div>
+      <div className="stats">
+        <div className="stat"><b>{days.size}</b><span>days with reo logged</span></div>
+        <div className="stat"><b>{db.uses.length}</b><span>kōrero lines used</span></div>
+        <div className="stat"><b>{reps}</b><span>rerenga repetitions</span></div>
+        <div className="stat"><b>{kupuAdded}</b><span>kupu added by kaiako</span></div>
+        <div className="stat"><b>{clips.length}</b><span>recordings in your own voices</span></div>
+        <div className="stat"><b>{speakers.length}</b><span>speakers recorded</span></div>
+        <div className="stat"><b>{(db.mai||[]).length}</b><span>Kōrero mai turns spoken</span></div>
+        <div className="stat"><b>{new Set((db.mai||[]).map(m=>m.date)).size}</b><span>days practising Kōrero mai</span></div>
+      </div>
+      <div className="card">
+        <div className="label">Bank with a voice</div>
+        <div className="row small"><span>{voiced} of {db.kupu.length} entries</span><span style={{textAlign:'right'}} className="muted">{db.kupu.length ? Math.round(voiced/db.kupu.length*100) : 0}%</span></div>
+        <div className="bar"><i style={{width:(db.kupu.length ? voiced/db.kupu.length*100 : 0)+'%'}}></i></div>
+        {speakers.length > 0 && <div className="muted small" style={{marginTop:8}}>Voices: {speakers.join(', ')}</div>}
+      </div>
+      <div className="card">
+        <div className="label">Reo used across the day</div>
+        {byWa.map(w => (
+          <div key={w.id} style={{marginBottom:8}}>
+            <div className="row small"><span>{w.reo}</span><span style={{textAlign:'right'}} className="muted">{w.n}</span></div>
+            <div className="bar"><i style={{width:(w.n/max*100)+'%'}}></i></div>
+          </div>
+        ))}
+      </div>
+      <button className="btn dark" onClick={csv}>Export evidence (CSV)</button>
+    </div>
+  );
+}
+
+function ServerStatus() {
+  const [st, setSt] = useState(null);
+  useEffect(() => { fetch('/api/reo').then(r => r.json()).then(setSt).catch(() => setSt({ ok:false })); }, []);
+  if (!st) return <div className="muted small" style={{marginBottom:8}}>Checking server…</div>;
+  const dot = (on) => <span style={{color: on ? 'var(--sage)' : 'var(--kokowai)'}}>{on ? '●' : '○'}</span>;
+  return (
+    <div className="small" style={{marginBottom:10, lineHeight:1.8}}>
+      <div>{dot(st.ok && st.chat)} Kōrero engine (Claude) {st.ok && st.chat ? 'ready' : '— not set up on Vercel'}</div>
+      <div>{dot(st.ok && st.voice)} Voice: hearing & speaking (ElevenLabs) {st.ok && st.voice ? 'ready' : '— not set up on Vercel'}</div>
+    </div>
+  );
+}
+
+function Tautuhi({ db, setDb }) {
+  const s = db.settings;
+  const set = (p) => setDb(d => ({ ...d, settings:{ ...d.settings, ...p } }));
+  const backup = async () => {
+    const audio = {};
+    for (const k of db.kupu) for (const c of (k.audio||[])) { const b = await clipGet(c.id); if (b) audio[c.id] = await toB64(b); }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ ...db, audioData: audio })], { type:'application/json' }));
+    a.download = 'korero-backup-'+today()+'.json'; a.click();
+  };
+  const restore = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = async () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (!(d.kupu && d.settings)) throw new Error();
+        const audio = d.audioData || {}; delete d.audioData;
+        for (const id in audio) await clipPut(id, await fromB64(audio[id]));
+        setDb(d); alert('Restored.');
+      } catch(err){ alert('That file didn’t work.'); }
+    };
+    r.readAsText(file);
+  };
+  return (
+    <div>
+      <div className="card">
+        <div className="label">Kōhanga / kura</div>
+        <input value={s.kohanga} onChange={e=>set({kohanga:e.target.value})} placeholder="Name" />
+      </div>
+      <div className="card">
+        <div className="label">Ko wai e kōrero ana</div>
+        <input value={s.speaker} onChange={e=>set({speaker:e.target.value})} placeholder="Your name — used on recordings from this device" />
+        <div className="muted small">Leave blank if different people record on this device. The app will ask each time.</div>
+      </div>
+      <div className="card">
+        <div className="label">Kupu AI engine</div>
+        <ServerStatus />
+        <input type="password" value={s.apiKey} onChange={e=>set({apiKey:e.target.value})} placeholder="Claude API key (optional if Vercel is set up)" />
+        <input value={s.model} onChange={e=>set({model:e.target.value})} placeholder="Model" />
+        <div className="muted small">Best: leave this blank and set the keys in Vercel, so nothing is stored on the phone. A key typed here stays on this device only.</div>
+      </div>
+      <div className="card">
+        <div className="label">Backup</div>
+        <div className="muted small" style={{marginBottom:8}}>Recordings are saved on this device. The backup includes them, so download one regularly.</div>
+        <div className="row">
+          <button className="btn ghost" onClick={backup}>Download backup</button>
+          <label className="btn ghost" style={{textAlign:'center'}}>Restore<input type="file" accept=".json" onChange={restore} style={{display:'none'}} /></label>
+        </div>
+      </div>
+      <div className="card">
+        <button className="btn ghost" onClick={()=>{ if (confirm('Clear everything, including recordings, and start fresh?')) { clipClear(); setDb(fresh()); } }}>Reset app</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [db, setDb] = useState(() => { const d = load() || fresh(); return { ...fresh(), ...d, mai: d.mai || [] }; });
+  const [tab, setTab] = useState('korero');
+  useEffect(() => save(db), [db]);
+  const tabs = [
+    ['korero','Kōrero','☀'],['mai','Kōrero mai','◉'],['bank','Kupu','◈'],['rerenga','Rerenga','↻'],['taunaki','Taunaki','▤'],['tautuhi','Tautuhi','⚙'],
+  ];
+  return (
+    <div className="app">
+      <header>
+        <div className="brand">Kupu AI</div>
+        <h1>Kōrero o te Rā</h1>
+        <div className="sub">{db.settings.kohanga || 'Daily reo for kōhanga & kura'}</div>
+      </header>
+      <main>
+        {tab==='korero' && <Korero db={db} setDb={setDb} go={setTab} />}
+        {tab==='mai' && <KoreroMai db={db} setDb={setDb} />}
+        {tab==='bank' && <Bank db={db} setDb={setDb} />}
+        {tab==='rerenga' && <Rerenga db={db} setDb={setDb} />}
+        {tab==='taunaki' && <Taunaki db={db} />}
+        {tab==='tautuhi' && <Tautuhi db={db} setDb={setDb} />}
+      </main>
+      <nav><div className="in">
+        {tabs.map(([id,label,icon]) => <button key={id} className={tab===id?'on':''} onClick={()=>{ setTab(id); window.scrollTo(0,0); }}><span className="i">{icon}</span>{label}</button>)}
+      </div></nav>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
